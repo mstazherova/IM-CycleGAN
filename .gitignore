@@ -4,3 +4,4 @@ __pycache__
 data/*
 playground.ipynb
 gan_example.py
+.DS_Store
