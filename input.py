@@ -8,32 +8,33 @@ start = time.time()
 IR_DATA_PATH = 'data/ir/'
 RGB_DATA_PATH = 'data/rgb/'
 
-def load_data():
-        """Loads data. Returns 2 numpy arrays 
-        (RGB pictures and IR pictures)."""
-        rgb_images = sorted(glob.glob(RGB_DATA_PATH + '**/*.png', 
-                                      recursive=True)) 
-        ir_images = sorted(glob.glob(IR_DATA_PATH + '**/*.png', 
-                                     recursive=True))  
+HORSE_TRAIN_PATH = 'data/horse2zebra/trainA/'
+ZEBRA_TRAIN_PATH = 'data/horse2zebra/trainB/'
 
-        RGB = []
-        IR = []
+def load_data(a_path, b_path):
+        """Loads data. Returns 2 numpy arrays."""
+        a_images = sorted(glob.glob(a_path + '*.jpg')) 
+        b_images = sorted(glob.glob(b_path + '*.jpg'))  
 
-        for img_name in rgb_images:
+        A = []
+        B = []
+
+        for img_name in a_images:
                 image = cv2.imread(img_name)
-                RGB.append(image)
+                A.append(image)
 
-        for img_name in ir_images:
+        for img_name in b_images:
                 image = cv2.imread(img_name)
-                IR.append(image)
+                B.append(image)
 
-        RGB = np.array(RGB)
-        IR = np.array(IR)
+        A = np.array(A)
+        B = np.array(B)
 
-        return RGB, IR
+        return A, B
 
-# RGB, IR = load_data()
 
-# print('Shape of IR array: {}'.format(IR.shape))
-# print('Shape of RGB array: {}'.format(RGB.shape))
+A, B = load_data(HORSE_TRAIN_PATH, ZEBRA_TRAIN_PATH)
+
+# print('Shape of horses train array: {}'.format(A.shape))
+# print('Shape of zebras train array: {}'.format(B.shape))
 # print('Took {} seconds'.format(time.time() - start))

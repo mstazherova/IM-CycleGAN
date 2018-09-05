@@ -4,7 +4,7 @@ warnings.simplefilter("ignore", category=FutureWarning)
 import tensorflow as tf
 import time 
 
-from input import load_data
+from input import A, B
 from model import *
 
 start = time.time()
@@ -80,7 +80,7 @@ def main():
 
     tf.reset_default_graph() 
 
-    A_input, B_input = load_data()
+    A_input, B_input = A, B
 
     input_a = tf.placeholder(dtype=tf.float32, 
                              shape=[None, HEIGHT, WIDTH, CHANNEL],
