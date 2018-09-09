@@ -1,16 +1,21 @@
-import warnings
-warnings.simplefilter("ignore", category=FutureWarning)
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+
+import argparse
+import time 
 
 import tensorflow as tf
-import time 
+config = tf.ConfigProto(log_device_placement=True)
+config.gpu_options.per_process_gpu_memory_fraction = 0.5
+config.gpu_options.allow_growth = True
+
 
 from input import A, B
 from model import *
 
 start = time.time()
 
-EPOCHS = 100
-NUM_IMG = 100
 WIDTH = 256
 HEIGHT = 256
 CHANNEL = 3
@@ -73,9 +78,11 @@ def build_model(input_a, input_b):
 
     print('The model is built! It took {} seconds'.format(time.time() - start))
 
-    return d_a_train_op, d_b_train_op, g_a_train_op, g_b_train_op, g1, g2
+    return d_a_loss, d_b_loss, g_total_a, g_total_b, d_a_train_op, \
+           d_b_train_op, g_a_train_op, g_b_train_op, g1, g2
     
-def main():
+
+def main(epochs, num_img):
     """Main loop."""
 
     tf.reset_default_graph() 
@@ -89,12 +96,13 @@ def main():
                              shape=[None, HEIGHT, WIDTH, CHANNEL], 
                              name='input_b')
 
-    d_a_train_op, d_b_train_op, g_a_train_op, g_b_train_op, g1, g2 = build_model(input_a, input_b)
+    d_a_loss, d_b_loss, g_a_loss, g_b_loss, d_a_train_op, d_b_train_op, \
+    g_a_train_op, g_b_train_op, g1, g2 = build_model(input_a, input_b)
 
-    with tf.Session() as sess:
+    with tf.Session(config=config) as sess:
         sess.run(tf.global_variables_initializer())
-        for epoch in range(EPOCHS):
-            for step in range(NUM_IMG):  # batch size = 1
+        for epoch in range(epochs):
+            for step in range(num_img):  # batch size = 1
                 a_input = A_input[step].reshape(1, HEIGHT, WIDTH, CHANNEL)
                 b_input = B_input[step].reshape(1, HEIGHT, WIDTH, CHANNEL)
 
@@ -112,9 +120,24 @@ def main():
                 _ = sess.run([d_a_train_op], 
                              feed_dict={input_a:a_input, 
                                         input_b:b_input})
-
-            print("Epoch {}/{} done...".format(epoch+1, EPOCHS))
+            d_loss_a = sess.run(d_a_loss, {input_a: a_input, input_b: b_input})
+            g_loss_a = g_a_loss.eval({input_a: a_input, input_b: b_input})
+            d_loss_b = sess.run(d_b_loss, {input_a: a_input, input_b: b_input})
+            g_loss_b = g_b_loss.eval({input_a: a_input, input_b: b_input})
+            print("Epoch {}/{}...".format(epoch+1, epochs))
+            print("Discriminator A Loss: {:.4f}...".format(d_loss_a))
+            print("Generator A Loss: {:.4f}".format(g_loss_a))
+            print("Discriminator B Loss: {:.4f}...".format(d_loss_b))
+            print("Generator B Loss: {:.4f}".format(g_loss_b))
+            
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-e', '--epochs', type=int, default=50, 
+                        help='Number of epochs. Default:50')
+    parser.add_argument('-i', '--images', type=int, default=1000,
+                        help='Number of training images/batches. Default:1000')
+    args = parser.parse_args()
+
+    main(args.epochs, args.images)

@@ -1,6 +1,3 @@
-import warnings
-warnings.simplefilter("ignore", category=FutureWarning)
-
 import tensorflow as tf
 
 
@@ -40,7 +37,7 @@ def discriminator(x, name='discriminator'):
     """Builds the discriminator which is a fully-convolutional 
     network."""
     with tf.variable_scope(name):
-        #TODO activation function
+        #TODO activation functions
         h1 = tf.layers.conv2d(x, 64, [4, 4], [2, 2])
         h2 = tf.layers.conv2d(h1, 128, [4, 4], [2, 2])
         h3 = tf.layers.conv2d(h2, 256, [4, 4], [2, 2])
