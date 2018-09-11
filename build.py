@@ -1,18 +1,19 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-
 import argparse
 import time 
 
 import tensorflow as tf
-config = tf.ConfigProto(log_device_placement=True)
-config.gpu_options.per_process_gpu_memory_fraction = 0.5
-config.gpu_options.allow_growth = True
-
 
 from input import A, B
 from model import *
+
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+
+config = tf.ConfigProto(log_device_placement=True)
+# config.gpu_options.per_process_gpu_memory_fraction = 0.5
+# config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
 
 start = time.time()
 
@@ -99,7 +100,7 @@ def main(epochs, num_img):
     d_a_loss, d_b_loss, g_a_loss, g_b_loss, d_a_train_op, d_b_train_op, \
     g_a_train_op, g_b_train_op, g1, g2 = build_model(input_a, input_b)
 
-    with tf.Session(config=config) as sess:
+    with sess:
         sess.run(tf.global_variables_initializer())
         for epoch in range(epochs):
             for step in range(num_img):  # batch size = 1

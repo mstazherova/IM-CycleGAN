@@ -7,7 +7,7 @@ def resnet_block(x, num_features):
     res1 = tf.layers.conv2d(x, num_features, [3, 3], [1, 1], padding='same')
     res2 = tf.layers.conv2d(res1, num_features, [3, 3], [1, 1], padding='same')
 
-    return (res2 + x)
+    return tf.nn.relu(res2 + x)
 
 
 def generator(x, name='generator'):
