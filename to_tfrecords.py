@@ -60,6 +60,7 @@ if __name__ == "__main__":
     DATA_PATH = 'data/horse2zebra/'
 
     parser = argparse.ArgumentParser()
+    #TODO add argument for random seed
     parser.add_argument('-i', '--in_path', default=DATA_PATH, 
                         help='Location of the data.')
     parser.add_argument('-o', '--out_prefix', default=DATA_PATH,
