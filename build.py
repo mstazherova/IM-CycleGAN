@@ -17,9 +17,18 @@ sess = tf.Session(config=config)
 
 start = time.time()
 
+CHECKPOINT_FILE = 'cyclegan.ckpt'
+CHECKPOINT_DIR = './checkpoint/'
 WIDTH = 256
 HEIGHT = 256
 CHANNEL = 3
+
+def save_model(saver, sess, counter):
+    if not os.path.isdir(CHECKPOINT_DIR):
+        os.makedirs(CHECKPOINT_DIR)
+    path = os.path.join(CHECKPOINT_DIR, CHECKPOINT_FILE)
+    saver.save(sess, path, global_step=counter)
+    return path
 
 def build_model(input_a, input_b):
     #TODO create a class (maybe)
