@@ -23,16 +23,20 @@ def deconv2d(inputs, out_dim, fs=4, s=2, padding='same', name='deconv2d'):
                                           padding=padding)
 
 
-def resnet_block(x, num_features):
+def resnet_block(x, out_dim, fs=3, s=1, p=1, mode='REFLECT', name='res'):
     """A layer that consists of 2 convolutional layers where a residue of input 
     is added to the output. CycleGAN code has two differences from typical 
     residual blocks:
     1) They use instance normalization instead of batch normalization
     2) They are missing the final ReLU nonlinearity."""
-    res1 = tf.layers.conv2d(x, num_features, [3, 3], [1, 1], padding='same')
-    res2 = tf.layers.conv2d(res1, num_features, [3, 3], [1, 1], padding='same')
+    # TODO add instance norm
+    paddings = [[0, 0], [p, p], [p, p], [0, 0]]
+    y = tf.pad(x, paddings, mode=mode)
+    y = conv2d(y, out_dim, fs, s, padding='valid', name=name + '_c1')
+    y = tf.pad(tf.nn.relu(y), paddings, mode=mode)
+    y = conv2d(y, out_dim, fs, s, padding='valid', name=name + '_c2')
 
-    return res2 + x
+    return y + x
 
 
 def generator(x, name='generator'):
@@ -40,20 +44,23 @@ def generator(x, name='generator'):
     a transformer and a decoder."""
     with tf.variable_scope(name):
         with tf.variable_scope('encoder'):
-            #TODO activation functions
-            enc1 = tf.layers.conv2d(x, 32, [3, 3], [1, 1])
-            enc_out = tf.layers.conv2d(enc1, 256, [2, 2], [4, 4])
+            #TODO change activation functions, add batch norm
+            enc = tf.pad(x, [[0, 0], [3, 3], [3, 3], [0, 0]], "REFLECT")
+            enc1 = tf.nn.relu(conv2d(enc, 32, 7, 1, padding='valid'))
+            enc2 = tf.nn.relu(conv2d(enc1, 64, 3, 2))
+            enc_out = tf.nn.relu(conv2d(enc2, 128, 3, 2))
         with tf.variable_scope('transformer'):
-            res1 = resnet_block(enc_out, 256)
-            res2 = resnet_block(res1, 256)
-            res3 = resnet_block(res2, 256)
-            res4 = resnet_block(res3, 256)
-            res5 = resnet_block(res4, 256)
-            res_out = resnet_block(res5, 256)
+            res1 = resnet_block(enc_out, 128)
+            res2 = resnet_block(res1, 128)
+            res3 = resnet_block(res2, 128)
+            res4 = resnet_block(res3, 128)
+            res5 = resnet_block(res4, 128)
+            res_out = resnet_block(res5, 128)
         with tf.variable_scope('decoder'):
-            dec1 = tf.layers.conv2d_transpose(res_out, 64, [2, 2], [2, 2])
-            dec2 = tf.layers.conv2d_transpose(dec1, 32, [1, 1], [1, 1])
-            gen_out = tf.layers.conv2d_transpose(dec2, 3, [2, 2], [2, 2])
+            dec1 = tf.nn.relu(deconv2d(res_out, 64, 3, 2))
+            dec2 = tf.nn.relu(deconv2d(dec1, 32, 3, 2))
+            dec2 = tf.pad(dec2, [[0, 0], [3, 3], [3, 3], [0, 0]], "REFLECT")
+            gen_out = tf.nn.tanh(conv2d(dec2, 3, 7, 1, padding='valid'))
     
     return gen_out
 
@@ -62,7 +69,7 @@ def discriminator(x, name='discriminator'):
     """Builds the discriminator which is a fully-convolutional 
     network."""
     with tf.variable_scope(name):
-        #TODO change activation functions
+        #TODO add batch normalization
         h1 = lrelu(conv2d(x, 64, [4, 4], [2, 2]))
         h2 = lrelu(tf.layers.conv2d(h1, 128, [4, 4], [2, 2]))
         h3 = lrelu(tf.layers.conv2d(h2, 256, [4, 4], [2, 2]))
