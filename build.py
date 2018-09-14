@@ -1,6 +1,7 @@
 import os
 import argparse
 import time 
+import numpy as np
 
 import tensorflow as tf
 
@@ -15,13 +16,20 @@ config = tf.ConfigProto(log_device_placement=True)
 # config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
+# ensure reproducability
+np.random.seed(1234)
+
 start = time.time()
 
 CHECKPOINT_FILE = 'cyclegan.ckpt'
 CHECKPOINT_DIR = './checkpoint/'
+LOG_DIR = './log/'
+
 WIDTH = 256
 HEIGHT = 256
 CHANNEL = 3
+BATCH_SIZE = 1
+
 
 def save_model(saver, sess, counter):
     if not os.path.isdir(CHECKPOINT_DIR):
@@ -30,22 +38,23 @@ def save_model(saver, sess, counter):
     saver.save(sess, path, global_step=counter)
     return path
 
+
 def build_model(input_a, input_b):
     #TODO create a class (maybe)
 
     with tf.variable_scope('model') as scope:
         #TODO rename a and b into source and target domains
-        g1 = generator(input_a, 'g_a2b')  # input A -> generated sample B 
-        g2 = generator(input_b, 'g_b2a')  # input B -> generated sample A
-        d_a = discriminator(input_a, 'd_a') # input A -> [0, 1]
-        d_b = discriminator(input_b, 'd_b') # input B -> [0, 1]
+        g1 = generator(input_a, 'g_a2b')     # input A -> generated sample B 
+        g2 = generator(input_b, 'g_b2a')     # input B -> generated sample A
+        d_a = discriminator(input_a, 'd_a')  # input A -> [0, 1]
+        d_b = discriminator(input_b, 'd_b')  # input B -> [0, 1]
 
         scope.reuse_variables()
 
-        d_gen_b = discriminator(g1, 'd_b') # generated sample B -> [0, 1]
-        d_gen_a = discriminator(g2, 'd_a') # generated sample A -> [0, 1]
-        cycle_a = generator(g1, 'g_b2a') # generated B -> reconstructed A
-        cycle_b = generator(g2, 'g_a2b') # generated A -> reconstructed B
+        d_gen_b = discriminator(g1, 'd_b')  # generated sample B -> [0, 1]
+        d_gen_a = discriminator(g2, 'd_a')  # generated sample A -> [0, 1]
+        cycle_a = generator(g1, 'g_b2a')    # generated B -> reconstructed A
+        cycle_b = generator(g2, 'g_a2b')    # generated A -> reconstructed B
 
     # Discriminator loss
     # recommendation for images from A must be close to 1
