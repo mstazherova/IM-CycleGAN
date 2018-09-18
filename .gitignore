@@ -7,3 +7,5 @@ gan_example.py
 .DS_Store
 tempCodeRunnerFile.py
 zebra_horse.ipynb
+log/*
+samples/*
