@@ -13,7 +13,7 @@ np.random.seed(1234)
 
 start = time.time()
 
-LOG_DIR = './log/'
+LOG_DIR = './logs/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
 
 WIDTH = 256
 HEIGHT = 256
@@ -96,8 +96,6 @@ def main(arguments):
     epochs = arguments.epochs
     gpu = arguments.gpu
 
-    merged = tf.summary.merge_all()
-
     tf.reset_default_graph() 
 
     if gpu:
@@ -129,6 +127,7 @@ def main(arguments):
     testG2 = generator(test_B,  name='g_b2a')
     testCycleA = generator(testG1,  name='d_a')
     testCycleB = generator(testG2, name='d_b')
+    merged = tf.summary.merge_all()
     
     init = tf.global_variables_initializer()
     saver = tf.train.Saver()
@@ -148,9 +147,10 @@ def main(arguments):
             _, gen_b = sess.run([g_a_train_op, g1])
             _, gen_a = sess.run([g_b_train_op, g2]) 
 
-            _ = sess.run([d_b_train_op, d_a_train_op], 
+            _, _, summaries = sess.run([d_b_train_op, d_a_train_op, merged], 
                          feed_dict={gen_b_sample: cache_b.fetch(gen_b),
                                     gen_a_sample: cache_a.fetch(gen_a)})
+            writer.add_summary(summaries, epoch)
 
             counter += 1
             print('{:4d} epoch,  time from start: {:4.4f}'.format(counter, time.time() - start))
@@ -165,8 +165,8 @@ def main(arguments):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-e', '--epochs', type=int, default=50, 
-                        help='Number of epochs. Default:50')
+    parser.add_argument('-e', '--epochs', type=int, default=100, 
+                        help='Number of epochs. Default:100')
     parser.add_argument('-gpu','--gpu', type=bool, default=False,
                         help='If to use GPU. Default: False')
     args = parser.parse_args()

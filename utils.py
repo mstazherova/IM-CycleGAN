@@ -1,9 +1,10 @@
 import os
 import numpy as np
 import scipy.misc
+import time
 
 
-SAMPLE_DIR = './samples/'
+SAMPLE_DIR = './samples/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
 
 CHECKPOINT_FILE = 'cyclegan.ckpt'
 CHECKPOINT_DIR = './checkpoint/'
