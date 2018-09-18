@@ -9,14 +9,6 @@ from utils import *
 from images import Images
 from image_cache import ImageCache
 
-# os.environ["CUDA_VISIBLE_DEVICES"]="0"
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-
-# config = tf.ConfigProto(log_device_placement=True)
-# config.gpu_options.per_process_gpu_memory_fraction = 0.5
-# config.gpu_options.allow_growth = True
-# sess = tf.Session(config=config)
-
 np.random.seed(1234)
 
 start = time.time()
@@ -57,6 +49,8 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
 
     d_a_loss = tf.reduce_mean(d_a_loss_real + d_a_loss_fake)
     d_b_loss = tf.reduce_mean(d_b_loss_real + d_b_loss_fake)
+    tf.summary.scalar('D_a Loss', d_a_loss)
+    tf.summary.scalar('D_b loss', d_b_loss)
 
     # Generator loss
     g_a_loss = tf.reduce_mean(tf.squared_difference(d_gen_a, 1))
@@ -68,6 +62,8 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
 
     g_total_a = g_a_loss + 10 * cycle_loss
     g_total_b = g_b_loss + 10 * cycle_loss
+    tf.summary.scalar('G_a Loss', g_total_a)
+    tf.summary.scalar('G_b Loss', g_total_b)
 
     # Optimizers
     trainable_vars = tf.trainable_variables()
@@ -85,38 +81,60 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
     g_b_train_op = tf.train.AdamOptimizer(2e-4).minimize(g_total_b, 
                                                          var_list=g_b_vars)
 
-    print('Built the model, took {0:.2f} seconds'.format(time.time() - start))
+    tf.summary.image('Input A', input_a, max_outputs=1)
+    tf.summary.image('Generated A', g2, max_outputs=1)
+    tf.summary.image('Input B', input_b, max_outputs=1)
+    tf.summary.image('Generated B', g1, max_outputs=1)
+
+    print('Built the model in {0:.2f} seconds'.format(time.time() - start))
 
     return d_a_train_op, d_b_train_op, g_a_train_op, g_b_train_op, g1, g2
     
 
-def main(epochs):
+def main(arguments):
     """Main loop."""
+    epochs = arguments.epochs
+    gpu = arguments.gpu
+
+    merged = tf.summary.merge_all()
 
     tf.reset_default_graph() 
 
+    if gpu:
+        os.environ["CUDA_VISIBLE_DEVICES"]="0"
+        os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+
+        config = tf.ConfigProto(log_device_placement=True)
+        # config.gpu_options.per_process_gpu_memory_fraction = 0.5
+        # config.gpu_options.allow_growth = True
+        sess = tf.Session(config=config)
+    else:
+        sess = tf.Session()
+
     DATA_PATH = 'data/horse2zebra/'
-    input_a = Images(DATA_PATH + '_trainA.tfrecords', batch_size=BATCH_SIZE, 
-                     name='A_input').feed()
-    input_b = Images(DATA_PATH + '_trainB.tfrecords', batch_size=BATCH_SIZE, 
-                     name='B_input').feed()
-    test_A = Images(DATA_PATH + '_testA.tfrecords', name='test_a').feed()
-    test_B = Images(DATA_PATH + '_testB.tfrecords', name='test_b').feed()
+
+    train_A = Images(DATA_PATH + '_trainA.tfrecords', name='trainA').feed_test()
+    train_B = Images(DATA_PATH + '_trainB.tfrecords', name='trainB').feed_test()
+    test_A = Images(DATA_PATH + '_testA.tfrecords', name='test_a').feed_test()
+    test_B = Images(DATA_PATH + '_testB.tfrecords', name='test_b').feed_test()
     
-    gen_a_sample = tf.placeholder(tf.float32, [None, 256, 256, 3], name="fake_a_sample")
-    gen_b_sample = tf.placeholder(tf.float32, [None, 256, 256, 3], name="fake_b_sample")
+    input_a = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="input_a")
+    input_b = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="input_b")
+    gen_a_sample = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="fake_a_sample")
+    gen_b_sample = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="fake_b_sample")
 
-    d_a_train_op, d_b_train_op, g_a_train_op, g_b_train_op, g1, g2 = build_model(input_a, input_b, gen_a_sample, gen_b_sample)
+    d_a_train_op, d_b_train_op, g_a_train_op, g_b_train_op, g1, g2 = build_model(train_A, train_B, gen_a_sample, gen_b_sample)
 
-    # testG1 = generator(test_A, name='g_a2b')
-    # testG2 = generator(test_B,  name='g_b2a')
-    # testCycleA = generator(testG1,  name='d_a')
-    # testCycleB = generator(testG2, name='d_b')
+    testG1 = generator(test_A, name='g_a2b')
+    testG2 = generator(test_B,  name='g_b2a')
+    testCycleA = generator(testG1,  name='d_a')
+    testCycleB = generator(testG2, name='d_b')
     
     init = tf.global_variables_initializer()
     saver = tf.train.Saver()
 
-    with tf.Session() as sess:
+    with sess:
+        writer = tf.summary.FileWriter(LOG_DIR, sess.graph)
         sess.run(init)
         ckpt = tf.train.get_checkpoint_state('./checkpoint/')
 
@@ -128,7 +146,6 @@ def main(epochs):
             print('Beginning epoch {}...'.format(epoch+1))
 
             _, gen_b = sess.run([g_a_train_op, g1])
-            print('Gen_b done')
             _, gen_a = sess.run([g_b_train_op, g2]) 
 
             _ = sess.run([d_b_train_op, d_a_train_op], 
@@ -136,17 +153,22 @@ def main(epochs):
                                     gen_a_sample: cache_a.fetch(gen_a)})
 
             counter += 1
-            print('{:4d} time: {:4.4f}'.format(counter, time.time() - start))
+            print('{:4d} epoch,  time from start: {:4.4f}'.format(counter, time.time() - start))
                 
             if np.mod(counter, SAVE_STEP) == 0:
                 save_path = save_model(saver, sess, counter)
                 print('Running for {0:.2} mins, saving to {}'.format((time.time() - start) / 60, save_path))
+
+            if np.mod(counter, SAMPLE_STEP) == 0:
+                sample(sess, counter, test_A, test_B, testG1, testG2, testCycleA, testCycleB)
             
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--epochs', type=int, default=50, 
                         help='Number of epochs. Default:50')
+    parser.add_argument('-gpu','--gpu', type=bool, default=False,
+                        help='If to use GPU. Default: False')
     args = parser.parse_args()
 
-    main(args.epochs)
+    main(args)
