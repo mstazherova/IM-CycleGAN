@@ -11,8 +11,7 @@ def batch_norm(x):
 
 def conv2d(inputs, out_dim, fs=4, s=2, padding='same'):
     return tf.layers.conv2d(inputs=inputs, filters=out_dim, 
-                            kernel_size=fs, strides=(s,s), padding=padding,
-                            kernel_initializer=tf.truncated_normal_initializer())
+                            kernel_size=fs, strides=(s,s), padding=padding)
 
 
 def deconv2d(inputs, out_dim, fs=4, s=2, padding='same'):
@@ -61,7 +60,7 @@ def generator(x, name='generator'):
         dec3 = conv2d(dec2_pad, 3, 7, 1, padding='valid')
         dec_out = tf.nn.tanh(dec3)
 
-        return dec_out
+    return dec_out
 
 
 def discriminator(x, name='discriminator'):
@@ -75,4 +74,4 @@ def discriminator(x, name='discriminator'):
         h4 = lrelu(conv2d(h3, 512, s=1))
         out = conv2d(h4, 1, s=1)
 
-        return out
+    return out
