@@ -111,10 +111,10 @@ def main(arguments):
 
     DATA_PATH = 'data/horse2zebra/'
 
-    train_A = Images(DATA_PATH + '_trainA.tfrecords', name='trainA').feed_test()
-    train_B = Images(DATA_PATH + '_trainB.tfrecords', name='trainB').feed_test()
-    test_A = Images(DATA_PATH + '_testA.tfrecords', name='test_a').feed_test()
-    test_B = Images(DATA_PATH + '_testB.tfrecords', name='test_b').feed_test()
+    train_A = Images(DATA_PATH + '_trainA.tfrecords', name='trainA').feed()
+    train_B = Images(DATA_PATH + '_trainB.tfrecords', name='trainB').feed()
+    test_A = Images(DATA_PATH + '_testA.tfrecords', name='test_a').feed()
+    test_B = Images(DATA_PATH + '_testB.tfrecords', name='test_b').feed()
     
     input_a = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="input_a")
     input_b = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="input_b")
