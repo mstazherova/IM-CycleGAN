@@ -22,9 +22,8 @@ class Images():
             image_buffer = features['image/encoded_image']
             image = tf.image.decode_jpeg(image_buffer, channels=3)
             image = self.preprocess(image)
-            images = tf.train.batch([image], batch_size=self.batch_size,
-                                     capacity=100 + 3 * self.batch_size) # why?
-            tf.summary.image('_input', images)
+            images = tf.train.batch([image], batch_size=self.batch_size) 
+            # tf.summary.image('_input', images)
         return images
 
     
