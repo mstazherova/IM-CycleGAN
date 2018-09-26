@@ -22,7 +22,7 @@ CHANNEL = 3
 BATCH_SIZE = 1
 
 SAMPLE_STEP = 10
-SAVE_STEP = 500
+SAVE_STEP = 50
 
     
 def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
@@ -116,8 +116,7 @@ def main(arguments):
     else:
         sess = tf.Session()
 
-    n_train = len(next(os.walk(HORSE_TRAIN_PATH))[2])
-    iterations = n_train * epochs
+    iterations = 1067 * epochs
     
     train_A = Images(DATA_PATH + '_trainA.tfrecords', name='trainA').feed()
     train_B = Images(DATA_PATH + '_trainB.tfrecords', name='trainB').feed()
@@ -149,7 +148,7 @@ def main(arguments):
         for epoch in range(epochs):
             start = time.time()
             print('Beginning epoch {}...'.format(epoch+1))
-            for step in range(n_train):
+            for step in range(1067):
                 while True:
                     try:
                         gen_a, gen_b = sess.run([g1, g2])
