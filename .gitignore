@@ -9,4 +9,5 @@ tempCodeRunnerFile.py
 zebra_horse.ipynb
 logs/*
 samples/*
-test.py
+inputs.py 
+build_np.py 
