@@ -100,22 +100,21 @@ def main(arguments):
     """Main loop."""
     epochs = arguments.epochs
     gpu = arguments.gpu
+    DATA_PATH = 'data/horse2zebra/'
+    HORSE_TRAIN_PATH = 'data/horse2zebra/trainA/'
 
     tf.reset_default_graph() 
 
     if gpu:
-        os.environ["CUDA_VISIBLE_DEVICES"]="0"
+        os.environ["CUDA_VISIBLE_DEVICES"]="2"
         os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 
         config = tf.ConfigProto(log_device_placement=True)
-        # config.gpu_options.per_process_gpu_memory_fraction = 0.5
-        # config.gpu_options.allow_growth = True
+        config.gpu_options.per_process_gpu_memory_fraction = 0.5
+        config.gpu_options.allow_growth = True
         sess = tf.Session(config=config)
     else:
         sess = tf.Session()
-
-    DATA_PATH = 'data/horse2zebra/'
-    HORSE_TRAIN_PATH = 'data/horse2zebra/trainA/'
 
     n_train = len(next(os.walk(HORSE_TRAIN_PATH))[2])
     iterations = n_train * epochs
@@ -139,7 +138,6 @@ def main(arguments):
     
     init = tf.global_variables_initializer()
     saver = tf.train.Saver()
-
 
     with sess:
         writer = tf.summary.FileWriter(LOG_DIR, sess.graph)
