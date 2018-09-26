@@ -147,9 +147,9 @@ def main(arguments):
         cache_b = ImageCache(50)
 
         for epoch in range(epochs):
-            start = time.time()
-            print('Beginning epoch {}...'.format(epoch+1))
             try:
+                start = time.time()
+                print('Beginning epoch {}...'.format(epoch+1))
                 for step in range(n_train):
                     gen_a, gen_b = sess.run([g1, g2])
                     _, _, _, _, summaries = sess.run([g_a_train_op, d_b_train_op, 
