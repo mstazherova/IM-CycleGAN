@@ -2,12 +2,35 @@ import os
 import numpy as np
 import scipy.misc
 import time
+import cv2
+import glob
 
 
 SAMPLE_DIR = './samples/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
 
 CHECKPOINT_FILE = 'cyclegan.ckpt'
 CHECKPOINT_DIR = './checkpoint/'
+
+def load_data(a_path, b_path):
+        """Loads data. Returns 2 numpy arrays."""
+        a_images = sorted(glob.glob(a_path + '*.jpg')) 
+        b_images = sorted(glob.glob(b_path + '*.jpg'))  
+
+        A = []
+        B = []
+
+        for img_name in a_images:
+                image = cv2.imread(img_name)
+                A.append(image)
+
+        for img_name in b_images:
+                image = cv2.imread(img_name)
+                B.append(image)
+
+        A = np.array(A)
+        B = np.array(B)
+
+        return A, B
 
 
 def sample(sess, idx, testX, testY, testG1, testG2, testCx, testCy):

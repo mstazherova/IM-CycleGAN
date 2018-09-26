@@ -23,6 +23,7 @@ class Images():
         dataset = dataset.map(self.extract_fn)
         dataset = dataset.batch(self.batch_size)
         iterator = dataset.make_one_shot_iterator()
+        iterator.make_initializer(dataset)
         next_image_data = iterator.get_next()
 
         return next_image_data
