@@ -147,19 +147,20 @@ def main(arguments):
         cache_b = ImageCache(50)
 
         for epoch in range(epochs):
-            try:
-                start = time.time()
-                print('Beginning epoch {}...'.format(epoch+1))
-                for step in range(n_train):
-                    gen_a, gen_b = sess.run([g1, g2])
-                    _, _, _, _, summaries = sess.run([g_a_train_op, d_b_train_op, 
-                                                      g_b_train_op, d_a_train_op, merged],
-                                                     feed_dict={gen_b_sample: cache_b.fetch(gen_b),
-                                                                gen_a_sample: cache_a.fetch(gen_a)})
+            start = time.time()
+            print('Beginning epoch {}...'.format(epoch+1))
+            for step in range(n_train):
+                while True:
+                    try:
+                        gen_a, gen_b = sess.run([g1, g2])
+                        _, _, _, _, summaries = sess.run([g_a_train_op, d_b_train_op, 
+                                                          g_b_train_op, d_a_train_op, merged],
+                                                         feed_dict={gen_b_sample: cache_b.fetch(gen_b),
+                                                                    gen_a_sample: cache_a.fetch(gen_a)})
 
-                    writer.add_summary(summaries, epoch)
-            except tf.errors.OutOfRangeError:
-                pass
+                        writer.add_summary(summaries, epoch)
+                    except tf.errors.OutOfRangeError:
+                        break
 
             counter = epoch + 1
             print('Epoch {:4d},  time needed: {:4.4f}'.format(counter, time.time() - start))
