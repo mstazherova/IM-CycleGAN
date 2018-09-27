@@ -100,6 +100,7 @@ def main(arguments):
     """Main loop."""
     epochs = arguments.epochs
     gpu = arguments.gpu
+    sample = arguments.sample
     DATA_PATH = 'data/horse2zebra/'
     HORSE_TRAIN_PATH = 'data/horse2zebra/trainA/'
 
@@ -168,7 +169,7 @@ def main(arguments):
                 save_path = save_model(saver, sess, counter)
                 print('Running for {0:.2} mins, saving to {}'.format((time.time() - start) / 60, save_path))
 
-            if np.mod(counter, SAMPLE_STEP) == 0:
+            if sample and np.mod(counter, SAMPLE_STEP) == 0:
                 sample(sess, counter, test_A, test_B, testG1, testG2, testCycleA, testCycleB)
             
 
@@ -178,6 +179,8 @@ if __name__ == "__main__":
                         help='Number of epochs. Default:100')
     parser.add_argument('-gpu','--gpu', type=bool, default=False,
                         help='If to use GPU. Default: False')
+    parser.add_argument('-s', '--sample', type=bool, default=False,
+                        help='If to save sampled imgs. Default: False')
     args = parser.parse_args()
 
     main(args)
