@@ -101,13 +101,14 @@ def main(arguments):
     epochs = arguments.epochs
     gpu = arguments.gpu
     sample = arguments.sample
+    gpu_number = arguments.gpu_number
     DATA_PATH = 'data/horse2zebra/'
     HORSE_TRAIN_PATH = 'data/horse2zebra/trainA/'
 
     tf.reset_default_graph() 
 
     if gpu:
-        os.environ["CUDA_VISIBLE_DEVICES"]="2"
+        os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(gpu_number)
         os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 
         config = tf.ConfigProto(log_device_placement=True)
@@ -179,6 +180,8 @@ if __name__ == "__main__":
                         help='Number of epochs. Default:100')
     parser.add_argument('-gpu','--gpu', type=bool, default=False,
                         help='If to use GPU. Default: False')
+    parser.add_argument('-gpu_n', 'gpu_number', type=int, default=0,
+                        help='Which GPU to use. Default:0')
     parser.add_argument('-s', '--sample', type=bool, default=False,
                         help='If to save sampled imgs. Default: False')
     args = parser.parse_args()
