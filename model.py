@@ -8,10 +8,10 @@ def lrelu(x, leak=0.2, name='lrelu'):
 def batch_norm(x):
     return tf.layers.batch_normalization(x, epsilon=1e-5)
 
-
-def conv2d(inputs, out_dim, fs=4, s=2, padding='same'):
+def conv2d(inputs, out_dim, fs=4, s=2, padding='same', activation=None):
     return tf.layers.conv2d(inputs=inputs, filters=out_dim, 
-                            kernel_size=fs, strides=(s,s), padding=padding)
+                            kernel_size=fs, strides=(s,s), padding=padding,
+                            activation=activation)
 
 
 def deconv2d(inputs, out_dim, fs=4, s=2, padding='same'):

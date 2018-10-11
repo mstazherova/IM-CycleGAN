@@ -11,7 +11,9 @@ CHECKPOINT_DIR = './checkpoint/'
 CHECKPOINT_FILE = 'cyclegan.ckpt'
 
 
-def sample(sess, idx, testX, testY, testG1, testG2, testCx, testCy):
+def sample(it_a, it_b, sess, idx, testX, testY, testG1, testG2, testCx, testCy):
+    sess.run(it_a)
+    sess.run(it_b)
     x_val, y_val, y_samp, x_samp, x_cycle_samp, y_cycle_samp = sess.run(
         [testX, testY, testG1, testG2, testCx, testCy]) 
 

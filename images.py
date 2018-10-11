@@ -22,12 +22,14 @@ class Images():
         dataset = tf.data.TFRecordDataset(self.tfrecords)
         dataset = dataset.map(self.extract_fn)
         dataset = dataset.batch(self.batch_size)
-        iterator = dataset.make_one_shot_iterator()
-        iterator.make_initializer(dataset)
+        # iterator = dataset.make_one_shot_iterator()
+        iterator = dataset.make_initializable_iterator()
+        init = iterator.make_initializer(dataset)
         next_image_data = iterator.get_next()
 
-        return next_image_data
 
+        return init, next_image_data
+    
      
     def preprocess(self, image):
         image = tf.image.resize_images(image, 
