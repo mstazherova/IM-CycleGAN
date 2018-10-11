@@ -91,7 +91,7 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
     print('Built the model in {0:.2f} seconds'.format(time.time() - start))
 
     return d_a_loss, d_b_loss, g_total_a, g_total_b, d_a_train_op, \
-    d_b_train_op, g_a_train_op, g_b_train_op, g1, g2
+           d_b_train_op, g_a_train_op, g_b_train_op, g1, g2
     
 
 def main(arguments):
@@ -100,8 +100,10 @@ def main(arguments):
     gpu = arguments.gpu
     to_sample = arguments.sample
     gpu_number = arguments.gpu_number
+
     DATA_PATH = 'data/horse2zebra/'
     HORSE_TRAIN_PATH = 'data/horse2zebra/trainA/'
+    # iterations = 1067 * epochs
 
     tf.reset_default_graph() 
 
@@ -115,8 +117,6 @@ def main(arguments):
         sess = tf.Session(config=config)
     else:
         sess = tf.Session()
-
-    # iterations = 1067 * epochs
     
     it_a, train_A = Images(DATA_PATH + '_trainA.tfrecords', name='trainA').feed()
     it_b, train_B = Images(DATA_PATH + '_trainB.tfrecords', name='trainB').feed()
@@ -157,7 +157,6 @@ def main(arguments):
                                                       g_b_train_op, d_a_train_op, merged],
                                                      feed_dict={gen_b_sample: cache_b.fetch(gen_b),
                                                                 gen_a_sample: cache_a.fetch(gen_a)})
-                    print("Writing summaries...")
                     writer.add_summary(summaries, epoch)
             except tf.errors.OutOfRangeError:
                 pass  
