@@ -44,13 +44,9 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
     # Discriminator loss 
     d_a_loss_real = tf.reduce_mean((d_a - tf.ones_like(d_a) * np.abs(np.random.normal(1.0, SOFT))) ** 2)
     d_a_loss_fake = tf.reduce_mean((d_a_sample - tf.zeros_like(d_a_sample)) ** 2)
-    # d_a_loss_real = tf.reduce_mean(tf.squared_difference(d_a, 1))
-    # d_a_loss_fake = tf.reduce_mean(tf.square(d_gen_a))
 
     d_b_loss_real = tf.reduce_mean((d_b - tf.ones_like(d_b) * np.abs(np.random.normal(1.0, SOFT))) ** 2)
     d_b_loss_fake = tf.reduce_mean((d_b_sample - tf.zeros_like(d_b_sample)) ** 2)
-    # d_b_loss_real = tf.reduce_mean(tf.squared_difference(d_b, 1))
-    # d_b_loss_fake = tf.reduce_mean(tf.square(d_gen_b))
 
     d_a_loss = (d_a_loss_real + d_a_loss_fake) / 2
     d_b_loss = (d_b_loss_real + d_b_loss_fake) / 2
@@ -113,8 +109,8 @@ def main(arguments):
         os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 
         config = tf.ConfigProto(log_device_placement=True)
-        # config.gpu_options.per_process_gpu_memory_fraction = 0.5
-        # config.gpu_options.allow_growth = True
+        config.gpu_options.per_process_gpu_memory_fraction = 0.5
+        config.gpu_options.allow_growth = True
         sess = tf.Session(config=config)
     else:
         sess = tf.Session()
