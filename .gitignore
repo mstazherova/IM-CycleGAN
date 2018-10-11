@@ -10,4 +10,5 @@ zebra_horse.ipynb
 logs/*
 samples/*
 inputs.py 
+train_disc.py
 build_np.py 
