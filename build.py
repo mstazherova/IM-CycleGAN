@@ -2,6 +2,7 @@ import os
 import argparse
 import time 
 from tqdm import tqdm
+tqdm.monitor_interval = 0
 
 import tensorflow as tf
 
@@ -156,12 +157,12 @@ def main(arguments):
                                                       g_b_train_op, d_a_train_op, merged],
                                                      feed_dict={gen_b_sample: cache_b.fetch(gen_b),
                                                                 gen_a_sample: cache_a.fetch(gen_a)})
-
+                    print("Writing summaries...")
                     writer.add_summary(summaries, epoch)
             except tf.errors.OutOfRangeError:
                 pass  
            
-            print("Epoch {}/{} done...".format(epoch+1, epochs))
+            print("Epoch {}/{} done.".format(epoch+1, epochs))
 
             counter = epoch + 1
                 
