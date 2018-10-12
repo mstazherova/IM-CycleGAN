@@ -9,8 +9,7 @@ class Images():
 
 
     def extract_fn(self, data_record):
-        features = {'image/file_name': tf.FixedLenFeature([], tf.string),
-                    'image/encoded_image': tf.FixedLenFeature([], tf.string)}
+        features = {'image/encoded_image': tf.FixedLenFeature([], tf.string)}
         sample = tf.parse_single_example(data_record, features)
         image = tf.image.decode_jpeg(sample['image/encoded_image'], channels=3)        
         image = self.preprocess(image)
@@ -22,11 +21,9 @@ class Images():
         dataset = tf.data.TFRecordDataset(self.tfrecords)
         dataset = dataset.map(self.extract_fn)
         dataset = dataset.batch(self.batch_size)
-        # iterator = dataset.make_one_shot_iterator()
         iterator = dataset.make_initializable_iterator()
         init = iterator.make_initializer(dataset)
         next_image_data = iterator.get_next()
-
 
         return init, next_image_data
     
