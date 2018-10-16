@@ -120,8 +120,8 @@ def main(arguments):
     
     it_a, train_A = Images(DATA_PATH + '_trainA.tfrecords', name='trainA').feed()
     it_b, train_B = Images(DATA_PATH + '_trainB.tfrecords', name='trainB').feed()
-    it_at, test_A = Images(DATA_PATH + '_testA.tfrecords', name='test_a').feed()
-    it_bt, test_B = Images(DATA_PATH + '_testB.tfrecords', name='test_b').feed()
+    # it_at, test_A = Images(DATA_PATH + '_testA.tfrecords', name='test_a').feed()
+    # it_bt, test_B = Images(DATA_PATH + '_testB.tfrecords', name='test_b').feed()
     
     gen_a_sample = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="fake_a_sample")
     gen_b_sample = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="fake_b_sample")
@@ -129,10 +129,10 @@ def main(arguments):
     d_a_loss, d_b_loss, g_a_loss, g_b_loss, d_a_train_op, d_b_train_op, \
     g_a_train_op, g_b_train_op, g1, g2 = build_model(train_A, train_B, gen_a_sample, gen_b_sample)
 
-    testG1 = generator(test_A, name='g_a2b')
-    testG2 = generator(test_B,  name='g_b2a')
-    testCycleA = generator(testG1,  name='d_a')
-    testCycleB = generator(testG2, name='d_b')
+    # testG1 = generator(test_A, name='g_a2b')
+    # testG2 = generator(test_B,  name='g_b2a')
+    # testCycleA = generator(testG1,  name='d_a')
+    # testCycleB = generator(testG2, name='d_b')
     merged = tf.summary.merge_all()
     
     init = tf.global_variables_initializer()
@@ -168,10 +168,10 @@ def main(arguments):
                 
             if np.mod(counter, SAVE_STEP) == 0:
                 save_path = save_model(saver, sess, counter)
-                print('Running for {0:.2} mins, saving to {}'.format((time.time() - start) / 60, save_path))
+                print('Running for {:.2} mins, saving to {}'.format((time.time() - start) / 60, save_path))
 
-            if to_sample and np.mod(counter, SAMPLE_STEP) == 0:
-                sample(it_at, it_bt, sess, counter, test_A, test_B, testG1, testG2, testCycleA, testCycleB)
+            # if to_sample and np.mod(counter, SAMPLE_STEP) == 0:
+            #     sample(it_at, it_bt, sess, counter, test_A, test_B, testG1, testG2, testCycleA, testCycleB)
             
 
 if __name__ == "__main__":
