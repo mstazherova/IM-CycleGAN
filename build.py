@@ -139,9 +139,9 @@ def main(arguments):
     saver = tf.train.Saver()
 
     with sess:
-        writer = tf.summary.FileWriter(LOG_DIR, sess.graph)
         sess.run(init)
-
+        writer = tf.summary.FileWriter(LOG_DIR, tf.get_default_graph())
+        
         cache_a = ImageCache(50)
         cache_b = ImageCache(50)
 
@@ -157,7 +157,8 @@ def main(arguments):
                                                       g_b_train_op, d_a_train_op, merged],
                                                      feed_dict={gen_b_sample: cache_b.fetch(gen_b),
                                                                 gen_a_sample: cache_a.fetch(gen_a)})
-                    writer.add_summary(summaries, epoch)
+                    if step % 100 == 0:
+                        writer.add_summary(summaries, epoch * 1067 + step)
             except tf.errors.OutOfRangeError:
                 pass  
            
@@ -169,7 +170,7 @@ def main(arguments):
                 save_path = save_model(saver, sess, counter)
                 print('Running for {0:.2} mins, saving to {}'.format((time.time() - start) / 60, save_path))
 
-            if to_sample and (np.mod(counter, SAMPLE_STEP) == 0):
+            if to_sample and np.mod(counter, SAMPLE_STEP) == 0:
                 sample(it_at, it_bt, sess, counter, test_A, test_B, testG1, testG2, testCycleA, testCycleB)
             
 
@@ -181,8 +182,8 @@ if __name__ == "__main__":
                         help='If to use GPU. Default: False')
     parser.add_argument('-number', '--gpu_number', type=int, default=0,
                         help='Which GPU to use. Default:0')
-    parser.add_argument('-s', '--sample', type=bool, default=True,
-                        help='If to save sampled imgs. Default: True')
+    parser.add_argument('-s', '--sample', type=bool, default=False,
+                        help='If to save sampled imgs. Default: False')
     args = parser.parse_args()
 
     main(args)
