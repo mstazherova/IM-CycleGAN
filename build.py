@@ -2,7 +2,6 @@ import os
 import argparse
 import time 
 from tqdm import tqdm
-tqdm.monitor_interval = 0
 
 import tensorflow as tf
 
@@ -96,10 +95,11 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
 
 def main(arguments):
     """Main loop."""
-    epochs = arguments.epochs
-    gpu = arguments.gpu
-    to_sample = arguments.sample
-    gpu_number = arguments.gpu_number
+    # TODO rename constants
+    EPOCHS = arguments.epochs
+    GPU = arguments.gpu
+    GPU_NUMBER = arguments.gpu_number
+    TO_SAMPLE = arguments.sample
 
     DATA_PATH = 'data/horse2zebra/'
     HORSE_TRAIN_PATH = 'data/horse2zebra/trainA/'
@@ -107,8 +107,8 @@ def main(arguments):
 
     tf.reset_default_graph() 
 
-    if gpu:
-        os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(gpu_number)
+    if GPU == 1:
+        os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(GPU_NUMBER)
         os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 
         config = tf.ConfigProto(log_device_placement=True)
@@ -120,8 +120,8 @@ def main(arguments):
     
     it_a, train_A = Images(DATA_PATH + '_trainA.tfrecords', name='trainA').feed()
     it_b, train_B = Images(DATA_PATH + '_trainB.tfrecords', name='trainB').feed()
-    # it_at, test_A = Images(DATA_PATH + '_testA.tfrecords', name='test_a').feed()
-    # it_bt, test_B = Images(DATA_PATH + '_testB.tfrecords', name='test_b').feed()
+    it_at, test_A = Images(DATA_PATH + '_testA.tfrecords', name='test_a').feed()
+    it_bt, test_B = Images(DATA_PATH + '_testB.tfrecords', name='test_b').feed()
     
     gen_a_sample = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="fake_a_sample")
     gen_b_sample = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="fake_b_sample")
@@ -129,10 +129,10 @@ def main(arguments):
     d_a_loss, d_b_loss, g_a_loss, g_b_loss, d_a_train_op, d_b_train_op, \
     g_a_train_op, g_b_train_op, g1, g2 = build_model(train_A, train_B, gen_a_sample, gen_b_sample)
 
-    # testG1 = generator(test_A, name='g_a2b')
-    # testG2 = generator(test_B,  name='g_b2a')
-    # testCycleA = generator(testG1,  name='d_a')
-    # testCycleB = generator(testG2, name='d_b')
+    testG1 = generator(test_A, name='g_a2b')
+    testG2 = generator(test_B,  name='g_b2a')
+    testCycleA = generator(testG1,  name='d_a')
+    testCycleB = generator(testG2, name='d_b')
     merged = tf.summary.merge_all()
     
     init = tf.global_variables_initializer()
@@ -146,7 +146,7 @@ def main(arguments):
         cache_b = ImageCache(50)
 
         print('Beginning training...')
-        for epoch in range(epochs):
+        for epoch in range(EPOCHS):
             start = time.time()
             sess.run(it_a)
             sess.run(it_b)
@@ -162,7 +162,7 @@ def main(arguments):
             except tf.errors.OutOfRangeError:
                 pass  
            
-            print("Epoch {}/{} done.".format(epoch+1, epochs))
+            print("Epoch {}/{} done.".format(epoch+1, EPOCHS))
 
             counter = epoch + 1
                 
@@ -170,20 +170,20 @@ def main(arguments):
                 save_path = save_model(saver, sess, counter)
                 print('Running for {:.2} mins, saving to {}'.format((time.time() - start) / 60, save_path))
 
-            # if to_sample and np.mod(counter, SAMPLE_STEP) == 0:
-            #     sample(it_at, it_bt, sess, counter, test_A, test_B, testG1, testG2, testCycleA, testCycleB)
+            if TO_SAMPLE == 1 and np.mod(counter, SAMPLE_STEP) == 0:
+                sample(it_at, it_bt, sess, counter, test_A, test_B, testG1, testG2, testCycleA, testCycleB)
             
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--epochs', type=int, default=100, 
                         help='Number of epochs. Default:100')
-    parser.add_argument('-gpu','--gpu', type=bool, default=False,
-                        help='If to use GPU. Default: False')
+    parser.add_argument('-gpu','--gpu', type=int, default=0,
+                        help='If to use GPU. Default: 0')
     parser.add_argument('-number', '--gpu_number', type=int, default=0,
                         help='Which GPU to use. Default:0')
-    parser.add_argument('-s', '--sample', type=bool, default=False,
-                        help='If to save sampled imgs. Default: False')
+    parser.add_argument('-s', '--sample', type=int, default=0,
+                        help='If to save sampled imgs. Default: 0')
     args = parser.parse_args()
 
     main(args)
