@@ -27,6 +27,16 @@ class Images():
 
         return init, next_image_data
     
+
+    def feed_test(self):
+        dataset = tf.data.TFRecordDataset(self.tfrecords)
+        dataset = dataset.map(self.extract_fn)
+        dataset = dataset.batch(self.batch_size)
+        iterator = dataset.make_initializable_iterator()
+        init = iterator.make_initializer(dataset)
+
+        return init, iterator
+    
      
     def preprocess(self, image):
         image = tf.image.resize_images(image, 
@@ -36,3 +46,29 @@ class Images():
         image.set_shape([self.image_size, self.image_size, 3])
 
         return image
+
+    
+    def count(self):
+        """Counts the number of original images in the TFrecords."""
+        num_images = 0 
+        record_iterator = tf.python_io.tf_record_iterator(self.tfrecords)
+        for example in record_iterator:
+            num_images += 1
+        
+        return num_images
+
+    
+    def check_dataset(self, init_op, next_el):
+        """Check if images are processed correctly."""
+        print("\nChecking dataset ...\n")
+        num_images = 0
+        with tf.Session() as sess:
+            sess.run(init_op)
+            try:
+                while True:
+                    sess.run(next_el)
+                    num_images += 1
+            except tf.errors.OutOfRangeError:
+                pass  
+            
+        return num_images
