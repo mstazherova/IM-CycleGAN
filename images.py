@@ -20,6 +20,7 @@ class Images():
     def feed(self):
         dataset = tf.data.TFRecordDataset(self.tfrecords)
         dataset = dataset.map(self.extract_fn)
+        dataset.shuffle(buffer_size=100)
         dataset = dataset.batch(self.batch_size)
         iterator = dataset.make_initializable_iterator()
         init = iterator.make_initializer(dataset)
