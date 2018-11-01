@@ -8,6 +8,8 @@ import tensorflow as tf
 
 
 def reader(path, shuffle=True):
+    """Reads all images in the folder and returns them as a list.
+    If shuffle True, shuffles the ordering of all image files."""
     files = []
 
     for img_file in os.scandir(path):

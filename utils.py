@@ -5,13 +5,14 @@ import time
 import glob
 
 
-SAMPLE_DIR = './samples/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
+SAMPLE_DIR = '/tmp/stazherova/samples/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
 
-CHECKPOINT_DIR = './checkpoint/'
+CHECKPOINT_DIR = '/tmp/stazherova/checkpoint/'
 CHECKPOINT_FILE = 'cyclegan.ckpt'
 
 
 def sample(it_a, it_b, sess, idx, testX, testY, testG1, testG2, testCx, testCy):
+    """Samples generated images from the test set."""
     sess.run(it_a)
     sess.run(it_b)
     x_val, y_val, y_samp, x_samp, x_cycle_samp, y_cycle_samp = sess.run(
@@ -35,6 +36,7 @@ def sample(it_a, it_b, sess, idx, testX, testY, testG1, testG2, testCx, testCy):
 
 
 def save_model(saver, sess, counter):
+    """Saves model checkpoint."""
     if not os.path.isdir(CHECKPOINT_DIR):
         os.makedirs(CHECKPOINT_DIR)
     path = os.path.join(CHECKPOINT_DIR, CHECKPOINT_FILE)
