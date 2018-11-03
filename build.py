@@ -168,7 +168,7 @@ def main(arguments):
                 
             if np.mod(counter, SAVE_STEP) == 0:
                 save_path = save_model(saver, sess, counter)
-                print('Running for {:.2} mins, saving to {}'.format((time.time() - start) / 60, save_path))
+                print('Running for {:.2f} mins, saving to {}'.format((time.time() - start) / 60, save_path))
 
             if TO_SAMPLE == 1 and np.mod(counter, SAMPLE_STEP) == 0:
                 sample(it_at, it_bt, sess, counter, test_A, test_B, testG1, testG2, testCycleA, testCycleB)
