@@ -58,8 +58,8 @@ class Images():
         
         return num_images
 
-    
-    def check_dataset(self, init_op, next_el):
+    @staticmethod
+    def check_dataset(init_op, next_el):
         """Check if images are processed correctly."""
         print("\nChecking dataset ...\n")
         num_images = 0
