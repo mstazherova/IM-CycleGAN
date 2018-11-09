@@ -2,6 +2,7 @@ import os
 import argparse
 import time 
 from tqdm import tqdm
+tqdm.monitor_interval = 0
 
 import tensorflow as tf
 
@@ -163,6 +164,8 @@ def main(arguments):
                 for step in tqdm(range(1067)):  # TODO change number of steps
                     gen_a, gen_b, _, _, summaries = sess.run([g1, g2, g_a_train_op, 
                                                               g_b_train_op, g_sum])
+                    if step % 100 == 0:
+                        writer.add_summary(summaries, epoch * 1067 + step)
                     _, _, summaries = sess.run([d_b_train_op, d_a_train_op, d_sum],
                                                feed_dict={gen_b_sample: cache_b.fetch(gen_b),
                                                           gen_a_sample: cache_a.fetch(gen_a)})
