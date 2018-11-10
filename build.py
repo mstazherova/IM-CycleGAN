@@ -146,7 +146,8 @@ def main(arguments):
     testG2 = generator(test_B,  name='g_b2a')
     testCycleA = generator(testG1,  name='d_a')
     testCycleB = generator(testG2, name='d_b')
-    # merged = tf.summary.merge_all()
+
+    merged = tf.summary.merge_all()
     
     init = tf.global_variables_initializer()
     saver = tf.train.Saver()
@@ -165,14 +166,12 @@ def main(arguments):
             sess.run(it_b)
             try:
                 for step in tqdm(range(533)):  # TODO change number of steps
-                    gen_a, gen_b, _, _, summaries = sess.run([g1, g2, g_a_train_op, 
-                                                              g_b_train_op, g_sum])
-                    if step % 100 == 0:
-                        writer.add_summary(summaries, epoch * 533 + step)
+                    gen_a, gen_b, = sess.run([g1, g2])
 
-                    _, _, summaries = sess.run([d_b_train_op, d_a_train_op, d_sum],
-                                               feed_dict={gen_b_sample: cache_b.fetch(gen_b),
-                                                          gen_a_sample: cache_a.fetch(gen_a)})
+                    _, _, _, _, summaries = sess.run([d_b_train_op, d_a_train_op, 
+                                                      g_a_train_op, g_b_train_op, merged],
+                                                     feed_dict={gen_b_sample: cache_b.fetch(gen_b),
+                                                                gen_a_sample: cache_a.fetch(gen_a)})
                     if step % 100 == 0:
                         writer.add_summary(summaries, epoch * 533 + step)
 
