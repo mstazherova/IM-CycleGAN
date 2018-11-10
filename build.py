@@ -2,7 +2,7 @@ import os
 import argparse
 import time 
 from tqdm import tqdm
-tqdm.monitor_interval = 0
+tqdm.monitor_interval = 0  # issue 481
 
 import tensorflow as tf
 
@@ -62,8 +62,11 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
     d_b_sum = tf.summary.scalar('D_b loss', d_b_loss)
 
     # Generator loss
-    g_a_loss = tf.reduce_mean((d_gen_b - tf.ones_like(d_gen_b) * np.abs(np.random.normal(1.0, SOFT))) ** 2)
-    g_b_loss = tf.reduce_mean((d_gen_a - tf.ones_like(d_gen_a) * np.abs(np.random.normal(1.0, SOFT))) ** 2)
+    # g_a_loss = tf.reduce_mean((d_gen_b - tf.ones_like(d_gen_b) * np.abs(np.random.normal(1.0, SOFT))) ** 2)
+    # g_b_loss = tf.reduce_mean((d_gen_a - tf.ones_like(d_gen_a) * np.abs(np.random.normal(1.0, SOFT))) ** 2)
+    # mean squared error
+    g_a_loss = tf.reduce_mean(tf.squared_difference(d_a_sample, 0.9))
+    g_b_loss = tf.reduce_mean(tf.squared_difference(d_b_sample, 0.9))
 
     # Reconstruction loss
     cycle_loss = tf.reduce_mean(tf.abs(input_a - cycle_a)) + \
@@ -161,16 +164,17 @@ def main(arguments):
             sess.run(it_a)
             sess.run(it_b)
             try:
-                for step in tqdm(range(1067)):  # TODO change number of steps
+                for step in tqdm(range(533)):  # TODO change number of steps
                     gen_a, gen_b, _, _, summaries = sess.run([g1, g2, g_a_train_op, 
                                                               g_b_train_op, g_sum])
                     if step % 100 == 0:
-                        writer.add_summary(summaries, epoch * 1067 + step)
+                        writer.add_summary(summaries, epoch * 533 + step)
+
                     _, _, summaries = sess.run([d_b_train_op, d_a_train_op, d_sum],
                                                feed_dict={gen_b_sample: cache_b.fetch(gen_b),
                                                           gen_a_sample: cache_a.fetch(gen_a)})
                     if step % 100 == 0:
-                        writer.add_summary(summaries, epoch * 1067 + step)
+                        writer.add_summary(summaries, epoch * 533 + step)
 
             except tf.errors.OutOfRangeError as e:
                 print(e)
@@ -183,7 +187,7 @@ def main(arguments):
                 
             if np.mod(counter, SAVE_STEP) == 0:
                 save_path = save_model(saver, sess, counter)
-                print('Running for {:.2f} mins, saving to {}'.format((time.perf_counter() - start) / 60, save_path))
+                print('Running for {} mins, saving to {}'.format((time.perf_counter() - start) / 60, save_path))
 
             if TO_SAMPLE == 1 and np.mod(counter, SAMPLE_STEP) == 0:
                 sample(it_at, it_bt, sess, counter, test_A, test_B, testG1, testG2, testCycleA, testCycleB)
