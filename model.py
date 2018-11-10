@@ -72,6 +72,6 @@ def discriminator(x, name='discriminator'):
         h2 = lrelu(conv2d(h1, 128))
         h3 = lrelu(conv2d(h2, 256))
         h4 = lrelu(conv2d(h3, 512, s=1))
-        out = conv2d(h4, 1, s=1, activation='sigmoid')
+        out = tf.nn.sigmoid(conv2d(h4, 1, s=1))
 
     return out
