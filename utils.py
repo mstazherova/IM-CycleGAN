@@ -29,10 +29,10 @@ def sample(it_a, it_b, sess, idx, testX, testY, testG1, testG2, testCx, testCy):
     scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_A.jpg'.format(idx)), x_val[0])
     scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_B.jpg'.format(idx)), y_val[0])
 
-    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_A_2B.jpg'.format(idx)), y_samp[0])
-    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_B_2A.jpg'.format(idx)), x_samp[0])
-    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_Cycle_A.jpg'.format(idx)), x_cycle_samp[0])
-    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_Cycle_B.jpg'.format(idx)), y_cycle_samp[0])
+    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_A_2B.jpg'.format(idx)), y)
+    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_B_2A.jpg'.format(idx)), x)
+    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_Cycle_A.jpg'.format(idx)), cycle_x)
+    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_Cycle_B.jpg'.format(idx)), cycle_y)
 
 
 def save_model(saver, sess, counter):
