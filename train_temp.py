@@ -26,29 +26,30 @@ SAMPLE_STEP = 10
 SAVE_STEP = 50
 
     
-def build_model(input_a, input_b):
+def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
     start = time.time()
     with tf.variable_scope('model', reuse=tf.AUTO_REUSE):
         g1 = generator(input_a, name='g_a2b')     # input A -> generated sample B 
-        d_gen_b = discriminator(g1, name='d_b')   # generated sample B -> [0, 1]
+        # d_gen_b = discriminator(g1, name='d_b')   # generated sample B -> [0, 1]
         cycle_a = generator(g1, name='g_b2a')     # generated B -> reconstructed A
 
         g2 = generator(input_b, name='g_b2a')     # input B -> generated sample A
-        d_gen_a = discriminator(g2, name='d_a')   # generated sample A -> [0, 1]
+        # d_gen_a = discriminator(g2, name='d_a')   # generated sample A -> [0, 1]
         cycle_b = generator(g2, name='g_a2b')     # generated A -> reconstructed B
 
         
         d_a = discriminator(input_a, name='d_a')  # input A -> [0, 1]
         d_b = discriminator(input_b, name='d_b')  # input B -> [0, 1]
-  
+        d_a_sample = discriminator(gen_a_sample, name='d_a')
+        d_b_sample = discriminator(gen_b_sample, name='d_b')
        
     # Discriminator loss 
     # mean squared error
     d_a_loss_real = tf.reduce_mean(tf.squared_difference(d_a, 0.9))
-    d_a_loss_fake = tf.reduce_mean(tf.square(d_gen_a))
+    d_a_loss_fake = tf.reduce_mean(tf.square(d_a_sample))
 
     d_b_loss_real = tf.reduce_mean(tf.squared_difference(d_b, 0.9))
-    d_b_loss_fake = tf.reduce_mean(tf.square(d_gen_b))
+    d_b_loss_fake = tf.reduce_mean(tf.square(d_b_sample))
 
 
     d_a_loss = (d_a_loss_real + d_a_loss_fake) / 2
@@ -58,8 +59,8 @@ def build_model(input_a, input_b):
 
     # Generator loss
     # mean squared error
-    g_a_loss = tf.reduce_mean(tf.squared_difference(d_gen_a, 0.9))
-    g_b_loss = tf.reduce_mean(tf.squared_difference(d_gen_b, 0.9))
+    g_a_loss = tf.reduce_mean(tf.squared_difference(d_a_sample, 0.9))
+    g_b_loss = tf.reduce_mean(tf.squared_difference(d_b_sample, 0.9))
 
     # Reconstruction loss
     cycle_loss = tf.reduce_mean(tf.abs(input_a - cycle_a)) + \
@@ -122,9 +123,12 @@ def main(arguments):
     it_b, train_B = Images(DATA_PATH + '_trainB.tfrecords', name='trainB').feed()
     it_at, test_A = Images(DATA_PATH + '_testA.tfrecords', name='test_a').feed()
     it_bt, test_B = Images(DATA_PATH + '_testB.tfrecords', name='test_b').feed()
+    
+    gen_a_sample = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="fake_a_sample")
+    gen_b_sample = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="fake_b_sample")
 
     d_a_train_op, d_b_train_op, g_a_train_op, g_b_train_op, g1, g2 = \
-    build_model(train_A, train_B)
+    build_model(train_A, train_B, gen_a_sample, gen_b_sample)
 
     testG1 = generator(test_A, name='g_a2b')
     testG2 = generator(test_B,  name='g_b2a')
@@ -149,13 +153,15 @@ def main(arguments):
             sess.run(it_a)
             sess.run(it_b)
             try:
-                for step in tqdm(range(1067)):  # TODO change number of steps
+                for step in tqdm(range(533)):  # TODO change number of steps
                     gen_a, gen_b, = sess.run([g1, g2])
 
                     _, _, _, _, summaries = sess.run([d_b_train_op, d_a_train_op, 
-                                                      g_a_train_op, g_b_train_op, merged])
+                                                      g_a_train_op, g_b_train_op, merged],
+                                                     feed_dict={gen_b_sample: cache_b.fetch(gen_b),
+                                                                gen_a_sample: cache_a.fetch(gen_a)})
                     if step % 100 == 0:
-                        writer.add_summary(summaries, epoch * 1067 + step)
+                        writer.add_summary(summaries, epoch * 533 + step)
 
             except tf.errors.OutOfRangeError as e:
                 print(e)
