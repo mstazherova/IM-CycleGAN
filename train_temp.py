@@ -30,19 +30,17 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
     start = time.time()
     with tf.variable_scope('model', reuse=tf.AUTO_REUSE):
         g1 = generator(input_a, name='g_a2b')     # input A -> generated sample B 
-        # d_gen_b = discriminator(g1, name='d_b')   # generated sample B -> [0, 1]
+        d_b_sample = discriminator(gen_b_sample, name='d_b') # generated sample B -> [0, 1]
         cycle_a = generator(g1, name='g_b2a')     # generated B -> reconstructed A
 
-        g2 = generator(input_b, name='g_b2a')     # input B -> generated sample A
-        # d_gen_a = discriminator(g2, name='d_a')   # generated sample A -> [0, 1]
+        g2 = generator(input_b, name='g_b2a')     # input B -> generated sample A  
+        d_a_sample = discriminator(gen_a_sample, name='d_a') # generated sample A -> [0, 1]
         cycle_b = generator(g2, name='g_a2b')     # generated A -> reconstructed B
 
-        
         d_a = discriminator(input_a, name='d_a')  # input A -> [0, 1]
         d_b = discriminator(input_b, name='d_b')  # input B -> [0, 1]
-        d_a_sample = discriminator(gen_a_sample, name='d_a')
-        d_b_sample = discriminator(gen_b_sample, name='d_b')
-       
+        
+        
     # Discriminator loss 
     # mean squared error
     d_a_loss_real = tf.reduce_mean(tf.squared_difference(d_a, 0.9))
@@ -50,7 +48,6 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
 
     d_b_loss_real = tf.reduce_mean(tf.squared_difference(d_b, 0.9))
     d_b_loss_fake = tf.reduce_mean(tf.square(d_b_sample))
-
 
     d_a_loss = (d_a_loss_real + d_a_loss_fake) / 2
     d_b_loss = (d_b_loss_real + d_b_loss_fake) / 2
@@ -87,12 +84,14 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
     g_b_train_op = tf.train.AdamOptimizer(2e-4).minimize(g_total_b, 
                                                          var_list=g_b_vars)
 
-    tf.summary.image('Input A', input_a, max_outputs=1)
-    tf.summary.image('Generated B', g1, max_outputs=1)
-    tf.summary.image('Input B', input_b, max_outputs=1)
-    tf.summary.image('Generated A', g2, max_outputs=1)
+    tf.summary.image('Input A', input_a, max_outputs=5)
+    tf.summary.image('Generated B', g1, max_outputs=5) 
+    tf.summary.image('Generated_A_sample', gen_a_sample, max_outputs=5)
+    tf.summary.image('Input B', input_b, max_outputs=5)
+    tf.summary.image('Generated A', g2, max_outputs=5)
+    tf.summary.image('Generated_B_sample', gen_b_sample, max_outputs=5)
     
-    print('Built the model in {0:.2f} seconds'.format(time.time() - start))
+    print('Built the model in {:.2f} seconds'.format(time.time() - start))
 
     return d_a_train_op, d_b_train_op, g_a_train_op, g_b_train_op, g1, g2
     
@@ -153,15 +152,15 @@ def main(arguments):
             sess.run(it_a)
             sess.run(it_b)
             try:
-                for step in tqdm(range(533)):  # TODO change number of steps
-                    gen_a, gen_b, = sess.run([g1, g2])
+                for step in tqdm(range(1067)):  # TODO change number of steps
+                    gen_a, gen_b = sess.run([g1, g2])
 
                     _, _, _, _, summaries = sess.run([d_b_train_op, d_a_train_op, 
                                                       g_a_train_op, g_b_train_op, merged],
                                                      feed_dict={gen_b_sample: cache_b.fetch(gen_b),
                                                                 gen_a_sample: cache_a.fetch(gen_a)})
                     if step % 100 == 0:
-                        writer.add_summary(summaries, epoch * 533 + step)
+                        writer.add_summary(summaries, epoch * 1067 + step)
 
             except tf.errors.OutOfRangeError as e:
                 print(e)
@@ -174,7 +173,7 @@ def main(arguments):
                 
             if np.mod(counter, SAVE_STEP) == 0:
                 save_path = save_model(saver, sess, counter)
-                print('Running for {0:.2f} seconds, saving to {}'.format(time.perf_counter() - start, save_path))
+                print('Running for {:.2f} seconds, saving to {}'.format(time.perf_counter() - start, save_path))
 
             if TO_SAMPLE == 1 and np.mod(counter, SAMPLE_STEP) == 0:
                 sample(it_at, it_bt, sess, counter, test_A, test_B, testG1, testG2, testCycleA, testCycleB)
