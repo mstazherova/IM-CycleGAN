@@ -153,7 +153,7 @@ def main(arguments):
             sess.run(it_b)
             try:
                 for step in tqdm(range(1067)):  # TODO change number of steps
-                    gen_a, gen_b = sess.run([g1, g2])
+                    gen_b, gen_a = sess.run([g1, g2])
 
                     _, _, _, _, summaries = sess.run([d_b_train_op, d_a_train_op, 
                                                       g_a_train_op, g_b_train_op, merged],
