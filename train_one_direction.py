@@ -36,7 +36,7 @@ def build_model(input_a, gen_b_sample):
              
     # Discriminator loss 
     # mean squared error
-    d_a_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(d_a, tf.ones_like(d_a)))
+    d_a_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_a, labels=tf.ones_like(d_a)))
 
     d_b_loss = tf.reduce_mean(tf.square(d_b_sample))
 
