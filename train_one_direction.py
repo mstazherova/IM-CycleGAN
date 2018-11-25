@@ -36,7 +36,7 @@ def build_model(input_a, gen_b_sample):
              
     # Discriminator loss 
     # mean squared error
-    d_a_loss = tf.reduce_mean(tf.squared_difference(d_a, 0.9))
+    d_a_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(d_a, tf.ones_like(d_a)))
 
     d_b_loss = tf.reduce_mean(tf.square(d_b_sample))
 
@@ -114,8 +114,8 @@ def main(arguments):
 
         print('Beginning training...')
         start = time.perf_counter()
+        sess.run(it_a)
         for epoch in range(EPOCHS):
-            sess.run(it_a)
             try:
                 for step in tqdm(range(1067)):  # TODO change number of steps
                     gen_b = sess.run(g1)
