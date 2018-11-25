@@ -113,9 +113,9 @@ def main(arguments):
         cache_b = ImageCache(50)
 
         print('Beginning training...')
-        start = time.perf_counter()
-        sess.run(it_a)
+        start = time.perf_counter()  
         for epoch in range(EPOCHS):
+            sess.run(it_a)
             try:
                 for step in tqdm(range(1067)):  # TODO change number of steps
                     gen_b = sess.run(g1)
