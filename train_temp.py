@@ -31,11 +31,11 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
     with tf.variable_scope('model', reuse=tf.AUTO_REUSE):
         g1 = generator(input_a, name='g_a2b')     # input A -> generated sample B 
         d_b_sample = discriminator(gen_b_sample, name='d_b') # generated sample B -> [0, 1]
-        cycle_a = generator(g1, name='g_b2a')     # generated B -> reconstructed A
+        cycle_a = generator(gen_b_sample, name='g_b2a')     # generated B -> reconstructed A
 
         g2 = generator(input_b, name='g_b2a')     # input B -> generated sample A  
         d_a_sample = discriminator(gen_a_sample, name='d_a') # generated sample A -> [0, 1]
-        cycle_b = generator(g2, name='g_a2b')     # generated A -> reconstructed B
+        cycle_b = generator(gen_a_sample, name='g_a2b')     # generated A -> reconstructed B
 
         d_a = discriminator(input_a, name='d_a')  # input A -> [0, 1]
         d_b = discriminator(input_b, name='d_b')  # input B -> [0, 1]
@@ -86,10 +86,11 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample):
 
     tf.summary.image('Input A', input_a, max_outputs=5)
     tf.summary.image('Generated B', g1, max_outputs=5) 
-    tf.summary.image('Generated_A_sample', gen_a_sample, max_outputs=5)
+    tf.summary.image('Generated_B_sample', gen_b_sample, max_outputs=5)
     tf.summary.image('Input B', input_b, max_outputs=5)
     tf.summary.image('Generated A', g2, max_outputs=5)
-    tf.summary.image('Generated_B_sample', gen_b_sample, max_outputs=5)
+    tf.summary.image('Generated_A_sample', gen_a_sample, max_outputs=5)
+    
     
     print('Built the model in {:.2f} seconds'.format(time.time() - start))
 
@@ -147,12 +148,12 @@ def main(arguments):
         cache_b = ImageCache(50)
 
         print('Beginning training...')
+        start = time.perf_counter()
         for epoch in range(EPOCHS):
-            start = time.perf_counter()
             sess.run(it_a)
             sess.run(it_b)
             try:
-                for step in tqdm(range(1067)):  # TODO change number of steps
+                for step in tqdm(range(533)):  # TODO change number of steps
                     gen_b, gen_a = sess.run([g1, g2])
 
                     _, _, _, _, summaries = sess.run([d_b_train_op, d_a_train_op, 
@@ -160,7 +161,7 @@ def main(arguments):
                                                      feed_dict={gen_b_sample: cache_b.fetch(gen_b),
                                                                 gen_a_sample: cache_a.fetch(gen_a)})
                     if step % 100 == 0:
-                        writer.add_summary(summaries, epoch * 1067 + step)
+                        writer.add_summary(summaries, epoch * 533 + step)
 
             except tf.errors.OutOfRangeError as e:
                 print(e)
