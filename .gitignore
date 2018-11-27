@@ -12,3 +12,4 @@ samples/*
 inputs.py 
 train_disc.py
 build_np.py 
+report/*
