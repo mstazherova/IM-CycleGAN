@@ -1,14 +1,24 @@
 import os
 import numpy as np
-import scipy.misc
+from skimage import transform
 import time
 import glob
+from scipy import misc
+import imageio
 
 
 SAMPLE_DIR = '/tmp/stazherova/samples/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
 
 CHECKPOINT_DIR = '/tmp/stazherova/checkpoint/'
 CHECKPOINT_FILE = 'cyclegan.ckpt'
+
+
+def load_data(path, img_size=256, channels=3):
+    image = imageio.imread(path)
+    image = transform.resize(image, [img_size, img_size, channels])
+    image = (image / 127.5) - 1.
+
+    return image
 
 
 def sample(it_a, it_b, sess, idx, testX, testY, testG1, testG2, testCx, testCy):
@@ -26,13 +36,13 @@ def sample(it_a, it_b, sess, idx, testX, testY, testG1, testG2, testCx, testCy):
     if not os.path.isdir(SAMPLE_DIR):
         os.makedirs(SAMPLE_DIR)
     
-    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_A.jpg'.format(idx)), x_val[0])
-    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_B.jpg'.format(idx)), y_val[0])
+    misc.imsave(os.path.join(SAMPLE_DIR,'{}_A.jpg'.format(idx)), x_val[0])
+    misc.imsave(os.path.join(SAMPLE_DIR,'{}_B.jpg'.format(idx)), y_val[0])
 
-    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_A_2B.jpg'.format(idx)), y)
-    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_B_2A.jpg'.format(idx)), x)
-    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_Cycle_A.jpg'.format(idx)), cycle_x)
-    scipy.misc.imsave(os.path.join(SAMPLE_DIR,'{}_Cycle_B.jpg'.format(idx)), cycle_y)
+    misc.imsave(os.path.join(SAMPLE_DIR,'{}_A_2B.jpg'.format(idx)), y)
+    misc.imsave(os.path.join(SAMPLE_DIR,'{}_B_2A.jpg'.format(idx)), x)
+    misc.imsave(os.path.join(SAMPLE_DIR,'{}_Cycle_A.jpg'.format(idx)), cycle_x)
+    misc.imsave(os.path.join(SAMPLE_DIR,'{}_Cycle_B.jpg'.format(idx)), cycle_y)
 
 
 def save_model(saver, sess, counter):
