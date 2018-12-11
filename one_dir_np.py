@@ -73,7 +73,7 @@ def main(arguments):
     GPU = arguments.gpu
     GPU_NUMBER = arguments.gpu_number
 
-    DATA_PATH = 'data/horse2zebra/'
+    DATA_PATH = 'data/'
 
     tf.reset_default_graph() 
 
