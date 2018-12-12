@@ -96,8 +96,8 @@ def main(arguments):
 
     imgs_a = [load_data(img_file) for img_file in data_A]
     imgs_b = [load_data(img_file) for img_file in data_B]
-    imgs_a = np.array(imgs_a, dtype=np.float32)
-    imgs_b = np.array(imgs_b, dtype=np.float32)
+    imgs_a = np.array(imgs_a)
+    imgs_b = np.array(imgs_b)
     
     input_a = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="input_a")
     input_b = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="input_a")
@@ -133,7 +133,7 @@ def main(arguments):
                                                        gen_b_sample: cache_b.fetch(gen_b),
                                                        learning_rate: lr})
                 if step % 100 == 0:
-                    writer.add_summary(summaries, epoch * 1067 + step)
+                    writer.add_summary(summaries, epoch * batch_idxs + step)
            
             print("Epoch {}/{} done, running for {:.2f} minutes.".format(epoch+1, EPOCHS, (time.perf_counter() - start)/60))
 

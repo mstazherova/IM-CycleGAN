@@ -5,6 +5,7 @@ import time
 import glob
 from scipy import misc
 import imageio
+import cv2
 
 
 SAMPLE_DIR = '/tmp/stazherova/samples/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
@@ -14,9 +15,11 @@ CHECKPOINT_FILE = 'cyclegan.ckpt'
 
 
 def load_data(path, img_size=256, channels=3):
-    image = imageio.imread(path)
-    image = transform.resize(image, [img_size, img_size, channels])
-    image = (image / 127.5) - 1.
+    image = cv2.imread(path)
+    image = cv2.resize(image, (img_size, img_size))
+    image = image.round()
+    image = np.maximum(image, 0)
+    image = np.minimum(image, 255)
 
     return image
 
