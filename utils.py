@@ -13,6 +13,20 @@ SAMPLE_DIR = '/tmp/stazherova/samples/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
 CHECKPOINT_DIR = '/tmp/stazherova/checkpoint/'
 CHECKPOINT_FILE = 'cyclegan.ckpt'
 
+def load(path):
+        """Loads data. Returns a numpy array."""
+        images = sorted(glob.glob(path + '*.jpg'))  
+
+        Inputs = []
+
+        for img_name in images:
+                image = cv2.imread(img_name)
+                Inputs.append(image)
+
+        Inputs = np.array(Inputs)
+
+        return Inputs
+
 
 def load_data(path, img_size=256, channels=3):
     image = cv2.imread(path)

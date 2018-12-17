@@ -9,7 +9,7 @@ tqdm.monitor_interval = 0  # issue 481
 import tensorflow as tf
 
 from model import discriminator, generator
-from utils import load_data
+from utils import load_data, load
 from image_cache import ImageCache
 
 LOG_DIR = './logs/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
@@ -73,7 +73,9 @@ def main(arguments):
     GPU = arguments.gpu
     GPU_NUMBER = arguments.gpu_number
 
-    DATA_PATH = 'data/'
+    DATA_PATH = 'data/horse2zebra/'
+    HORSE_TRAIN_PATH = 'data/horse2zebra/trainA/'
+    ZEBRA_TRAIN_PATH = 'data/horse2zebra/trainB/'
 
     tf.reset_default_graph() 
 
@@ -88,16 +90,18 @@ def main(arguments):
     else:
         sess = tf.Session()
     
-    data_A = glob(DATA_PATH + 'trainA/*.*')
-    data_B = glob(DATA_PATH + 'trainB/*.*')
+    # data_A = glob(DATA_PATH + 'trainA/*.*')
+    # data_B = glob(DATA_PATH + 'trainB/*.*')
+    data_A = load(HORSE_TRAIN_PATH)
+    data_B = load(ZEBRA_TRAIN_PATH)
     np.random.shuffle(data_A)
     np.random.shuffle(data_B)
     batch_idxs = min(len(data_A), len(data_B))
 
-    imgs_a = [load_data(img_file) for img_file in data_A]
-    imgs_b = [load_data(img_file) for img_file in data_B]
-    imgs_a = np.array(imgs_a)
-    imgs_b = np.array(imgs_b)
+    # imgs_a = [load_data(img_file) for img_file in data_A]
+    # imgs_b = [load_data(img_file) for img_file in data_B]
+    # imgs_a = np.array(imgs_a)
+    # imgs_b = np.array(imgs_b)
     
     input_a = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="input_a")
     input_b = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="input_a")
@@ -124,8 +128,8 @@ def main(arguments):
                 lr = 2e-4 - (2e-4 * (epoch - 100) / 100)
             
             for step in tqdm(range(batch_idxs)):
-                a_input = imgs_a[step].reshape(1, HEIGHT, WIDTH, CHANNEL)
-                b_input = imgs_b[step].reshape(1, HEIGHT, WIDTH, CHANNEL)
+                a_input = data_A[step].reshape(1, HEIGHT, WIDTH, CHANNEL)
+                b_input = data_B[step].reshape(1, HEIGHT, WIDTH, CHANNEL)
 
                 gen_b = sess.run(g1, feed_dict={input_a:a_input})
                 _, _, summaries = sess.run([d_train_op, g_train_op, merged],
