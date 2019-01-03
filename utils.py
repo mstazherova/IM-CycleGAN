@@ -25,7 +25,7 @@ def load(path):
                 image = tf.subtract(tf.div(image, 127.5), 1)
                 Inputs.append(image)
 
-        Inputs = np.array(Inputs).astype(np.float32)
+        Inputs = np.array(Inputs)
 
         return Inputs
 
