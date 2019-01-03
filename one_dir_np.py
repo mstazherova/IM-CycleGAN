@@ -12,7 +12,7 @@ from model import discriminator, generator
 from utils import load
 from image_cache import ImageCache
 
-LOG_DIR = './logs/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
+LOG_DIR = './logs/np-{}'.format(time.strftime('%Y%m%d-%H%M%S'))
 
 WIDTH = 256
 HEIGHT = 256
