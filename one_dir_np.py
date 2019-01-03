@@ -9,7 +9,7 @@ tqdm.monitor_interval = 0  # issue 481
 import tensorflow as tf
 
 from model import discriminator, generator
-from utils import load_data, load
+from utils import load
 from image_cache import ImageCache
 
 LOG_DIR = './logs/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
@@ -73,9 +73,11 @@ def main(arguments):
     GPU = arguments.gpu
     GPU_NUMBER = arguments.gpu_number
 
-    DATA_PATH = 'data/horse2zebra/'
+    # DATA_PATH = 'data/horse2zebra/'
     HORSE_TRAIN_PATH = 'data/horse2zebra/trainA/'
     ZEBRA_TRAIN_PATH = 'data/horse2zebra/trainB/'
+    # A_DIR = './data/trainA/*.jpg'
+    # B_DIR = './data/trainB/*.jpg'
 
     tf.reset_default_graph() 
 
@@ -128,8 +130,8 @@ def main(arguments):
                 lr = 2e-4 - (2e-4 * (epoch - 100) / 100)
             
             for step in tqdm(range(batch_idxs)):
-                a_input = data_A[step].reshape(1, HEIGHT, WIDTH, CHANNEL)
-                b_input = data_B[step].reshape(1, HEIGHT, WIDTH, CHANNEL)
+                a_input = data_A[step].reshape(BATCH_SIZE, HEIGHT, WIDTH, CHANNEL)
+                b_input = data_B[step].reshape(BATCH_SIZE, HEIGHT, WIDTH, CHANNEL)
 
                 gen_b = sess.run(g1, feed_dict={input_a:a_input})
                 _, _, summaries = sess.run([d_train_op, g_train_op, merged],

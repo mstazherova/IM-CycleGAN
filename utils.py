@@ -6,6 +6,7 @@ import glob
 from scipy import misc
 import imageio
 import cv2
+import tensorflow as tf
 
 
 SAMPLE_DIR = '/tmp/stazherova/samples/{}'.format(time.strftime('%Y%m%d-%H%M%S'))
@@ -21,21 +22,12 @@ def load(path):
 
         for img_name in images:
                 image = cv2.imread(img_name)
+                image = tf.subtract(tf.div(image, 127.5), 1)
                 Inputs.append(image)
 
-        Inputs = np.array(Inputs)
+        Inputs = np.array(Inputs).astype(np.float32)
 
         return Inputs
-
-
-def load_data(path, img_size=256, channels=3):
-    image = cv2.imread(path)
-    image = cv2.resize(image, (img_size, img_size))
-    image = image.round()
-    image = np.maximum(image, 0)
-    image = np.minimum(image, 255)
-
-    return image
 
 
 def sample(it_a, it_b, sess, idx, testX, testY, testG1, testG2, testCx, testCy):
