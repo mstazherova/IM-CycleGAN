@@ -6,6 +6,8 @@ import time
 from matplotlib import pyplot as plt
 import os
 
+parent_dir, _ = os.path.split(os.getcwd())
+
 def mse(output, target):
     return K.mean(K.abs(K.square(output-target)))
 
@@ -51,7 +53,7 @@ def save_image(X, path, rows=1, image_size=256):
     int_X = int_X.reshape(rows, -1, image_size, image_size, 3).swapaxes(1, 2).reshape(rows * image_size, -1, 3)
     pil_X = Image.fromarray(int_X)
     t = str(time.time())
-    pil_X.save(path + 'results' + t, 'JPEG')
+    pil_X.save(path + t, 'JPEG')
 
 
 def save_generator(A, B, rec_a, rec_b, path):
@@ -104,4 +106,4 @@ def save_plots(steps, d_a, d_b, g_a, g_b):
     ax2.plot(steps, g_b, label="G_B loss")
     ax2.legend()
 
-    fig.savefig('./logs/losses{}.png'.format(time.strftime('%Y%m%d-%H%M%S')))
+    fig.savefig(os.path.join(parent_dir, '/logs/losses{}.png'.format(time.strftime('%Y%m%d-%H%M%S'))))

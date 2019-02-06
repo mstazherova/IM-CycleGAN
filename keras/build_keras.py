@@ -57,7 +57,7 @@ def main(arguments):
     GPU = arguments.gpu
     GPU_NUMBER = arguments.gpu_number
 
-    SAVE_PATH = '/tmp/stazherova/generated/'
+    # SAVE_PATH = '/tmp/stazherova/generated/'
 
     if GPU == 1:
         os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(GPU_NUMBER)
@@ -73,8 +73,9 @@ def main(arguments):
     trainA = glob.glob(os.path.join(parent_dir, 'data/trainA/*'))
     trainB = glob.glob(os.path.join(parent_dir, 'data/trainB/*'))
 
+    SAVE_PATH = os.path.join(parent_dir, 'generated/')
     DISPLAY_STEP = 500
-    SAVE_STEP = 10
+    # SAVE_STEP = 10
     SUMMARY_STEP = min(len(trainA), len(trainB))
     epoch = 0
     counter = 0
@@ -101,10 +102,6 @@ def main(arguments):
             print('D_a_loss: {:.2f}, D_b_loss: {:.2f}'.format(d_a_loss, d_b_loss))
             print('G_a_loss: {:.2f}, G_b_loss: {:.2f}'.format(g_a_loss, g_b_loss))
 
-        if np.mod(epoch, SAVE_STEP) == 0:
-            print('Saving generated images...')
-            save_generator(A, B, cycleA_generate, cycleB_generate, SAVE_PATH)
-
         if np.mod(counter, SUMMARY_STEP) == 0:
             print('Saving data for plots...')
             steps_array.append(counter)
@@ -112,6 +109,8 @@ def main(arguments):
             d_b_losses.append(d_b_loss)
             g_a_losses.append(g_a_loss)
             g_b_losses.append(g_b_loss)
+            print('Saving generated images...')
+            save_generator(A, B, cycleA_generate, cycleB_generate, SAVE_PATH)
 
         # TODO image pool
     
