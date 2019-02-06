@@ -51,7 +51,7 @@ def save_image(X, path, rows=1, image_size=256):
     int_X = int_X.reshape(rows, -1, image_size, image_size, 3).swapaxes(1, 2).reshape(rows * image_size, -1, 3)
     pil_X = Image.fromarray(int_X)
     t = str(time.time())
-    pil_X.save(path + 'results/' + t, 'JPEG')
+    pil_X.save(path + 'results' + t, 'JPEG')
 
 
 def save_generator(A, B, rec_a, rec_b, path):
