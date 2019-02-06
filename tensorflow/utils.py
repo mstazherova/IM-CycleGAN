@@ -22,10 +22,11 @@ def load(path):
 
         for img_name in images:
                 image = cv2.imread(img_name)
-                image = cv2.resize(image, (img_size, img_size))
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 image = image.round()
                 image = np.maximum(image, 0)
                 image = np.minimum(image, 255)
+
                 # image = tf.subtract(tf.div(image, 127.5), 1)
                 Inputs.append(image)
 

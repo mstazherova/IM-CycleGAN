@@ -35,9 +35,9 @@ def build_model(input_a, input_b, gen_a_sample, gen_b_sample, lr):
         cycle_a = generator(g1, name='g_b2a')     # generated B -> reconstructed A
 
         g2 = generator(input_b, name='g_b2a')     # input B -> generated sample A 
-        d_a = discriminator(input_a, name='d_b')  # input A -> [0, 1].  Prob that real A is real.
-        d_a_gen = discriminator(g2, name='d_b')   # generated sample A -> [0, 1]. Prob that fake A is real.
-        cycle_b = generator(g2, name='g_b2a')     # generated A -> reconstructed B
+        d_a = discriminator(input_a, name='d_a')  # input A -> [0, 1].  Prob that real A is real.
+        d_a_gen = discriminator(g2, name='d_a')   # generated sample A -> [0, 1]. Prob that fake A is real.
+        cycle_b = generator(g2, name='g_a2b')     # generated A -> reconstructed B
     
         d_a_sample = discriminator(gen_a_sample, name='d_a')  # Prob that fake A pool is real.
         d_b_sample = discriminator(gen_b_sample, name='d_b')  # Prob that fake B pool is real.
@@ -106,7 +106,7 @@ def main(arguments):
     EPOCHS = arguments.epochs
     GPU = arguments.gpu
     GPU_NUMBER = arguments.gpu_number
-    TO_SAMPLE = arguments.sample
+    # TO_SAMPLE = arguments.sample
 
     DATA_PATH = 'data/horse2zebra/'
 

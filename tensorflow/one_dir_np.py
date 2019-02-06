@@ -105,9 +105,9 @@ def main(arguments):
     # imgs_a = np.array(imgs_a)
     # imgs_b = np.array(imgs_b)
     
-    input_a = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="input_a")
-    input_b = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="input_a")
-    gen_b_sample = tf.placeholder(tf.float32, [None, WIDTH, HEIGHT, CHANNEL], name="fake_b_sample")
+    input_a = tf.placeholder(tf.uint8, [None, WIDTH, HEIGHT, CHANNEL], name="input_a")
+    input_b = tf.placeholder(tf.uint8, [None, WIDTH, HEIGHT, CHANNEL], name="input_a")
+    gen_b_sample = tf.placeholder(tf.uint8, [None, WIDTH, HEIGHT, CHANNEL], name="fake_b_sample")
     learning_rate = tf.placeholder(tf.float32, shape=[], name="lr")
 
     d_train_op, g_train_op, g1 = build_model(input_a, input_b, gen_b_sample, learning_rate)

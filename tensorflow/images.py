@@ -20,7 +20,7 @@ class Images():
     def feed(self):
         dataset = tf.data.TFRecordDataset(self.tfrecords)
         dataset = dataset.map(self.extract_fn)
-        dataset.shuffle(buffer_size=100)
+        dataset.shuffle(buffer_size=1000)
         dataset = dataset.batch(self.batch_size)
         iterator = dataset.make_initializable_iterator()
         init = iterator.make_initializer(dataset)
@@ -53,23 +53,27 @@ class Images():
         """Counts the number of original images in the TFrecords."""
         num_images = 0 
         record_iterator = tf.python_io.tf_record_iterator(self.tfrecords)
-        for example in record_iterator:
+        for _ in record_iterator:
             num_images += 1
         
         return num_images
 
     @staticmethod
-    def check_dataset(init_op, next_el):
+    def check_dataset(init_a, init_b, next_a, next_b):
         """Check if images are processed correctly."""
         print("\nChecking dataset ...\n")
-        num_images = 0
+        num_images_a = 0
+        num_images_b = 0
         with tf.Session() as sess:
-            sess.run(init_op)
-            try:
-                while True:
-                    sess.run(next_el)
-                    num_images += 1
-            except tf.errors.OutOfRangeError:
-                pass  
+            sess.run(init_a)
+            sess.run(init_b)
+            while True:
+                try:
+                    sess.run(next_a)
+                    sess.run(next_b)
+                    num_images_a += 1
+                    num_images_b += 1
+                except tf.errors.OutOfRangeError:
+                    pass  
             
-        return num_images
+        return num_images_a, num_images_b
