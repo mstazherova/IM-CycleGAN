@@ -69,8 +69,9 @@ def main(arguments):
         sess = tf.Session(config=config)
         K.set_session(sess)
 
-    trainA = glob.glob('data/trainA/*')
-    trainB = glob.glob('data/trainB/*')
+    parent_dir, _ = os.path.split(os.getcwd())
+    trainA = glob.glob(os.path.join(parent_dir, 'data/trainA/*'))
+    trainB = glob.glob(os.path.join(parent_dir, 'data/trainB/*'))
 
     DISPLAY_STEP = 500
     SAVE_STEP = 10
