@@ -1,10 +1,13 @@
+import os
 from keras import backend as K
 from PIL import Image
 import numpy as np
 from random import shuffle
 import time
+
 from matplotlib import pyplot as plt
-import os
+plt.switch_backend('agg')
+
 
 parent_dir, _ = os.path.split(os.getcwd())
 
@@ -41,22 +44,26 @@ def read_image(img, imagesize=256):
     return img
 
 
-# def save_image(image_numpy, image_path):
-#     image_pil = Image.fromarray(image_numpy)
-#     image_pil.save(image_path)
-
-
-def save_image(X, path, rows=1, image_size=256):
-    assert X.shape[0] % rows == 0
-    int_X = ((X * 255).clip(0, 255).astype('uint8'))
-    int_X = int_X.reshape(-1, image_size, image_size, 3)
-    int_X = int_X.reshape(rows, -1, image_size, image_size, 3).swapaxes(1, 2).reshape(rows * image_size, -1, 3)
+def save_image(X, path, epoch, rows=1, image_size=256):
+    assert X.shape[0]%rows == 0
+    int_X = ((X*127.5+127.5).clip(0,255).astype('uint8'))
+    int_X = int_X.reshape(-1,image_size,image_size, 3)
+    int_X = int_X.reshape(rows, -1, image_size, image_size,3).swapaxes(1,2).reshape(rows*image_size,-1, 3)
     pil_X = Image.fromarray(int_X)
-    t = str(time.time())
-    pil_X.save(path + t, 'JPEG')
+    pil_X.save('{}epoch{}.jpg'.format(path, epoch), 'JPEG')
 
 
-def save_generator(A, B, rec_a, rec_b, path):
+# def save_image(X, path, rows=1, image_size=256):
+#     assert X.shape[0] % rows == 0
+#     int_X = ((X * 255).clip(0, 255).astype('uint8'))
+#     int_X = int_X.reshape(-1, image_size, image_size, 3)
+#     int_X = int_X.reshape(rows, -1, image_size, image_size, 3).swapaxes(1, 2).reshape(rows * image_size, -1, 3)
+#     pil_X = Image.fromarray(int_X)
+#     t = str(time.time())
+#     pil_X.save(path + t, 'JPEG')
+
+
+def save_generator(A, B, rec_a, rec_b, path, epoch):
     if not os.path.isdir(path):
         os.makedirs(path)
 
@@ -66,7 +73,7 @@ def save_generator(A, B, rec_a, rec_b, path):
     rA = G(rec_a, A)
     rB = G(rec_b, B)
     arr = np.concatenate([A,B,rA[0],rB[0],rA[1],rB[1]])
-    save_image(arr, path, rows=3)
+    save_image(arr, path, epoch, rows=3)
 
 
 def minibatch(data, batchsize=1):
@@ -77,6 +84,7 @@ def minibatch(data, batchsize=1):
     while True:
         size = tmpsize if tmpsize else batchsize
         if i+size > length:
+            shuffle(data)
             i = 0
             epoch+=1        
         rtn = [read_image(data[j]) for j in range(i,i+size)]
@@ -95,7 +103,6 @@ def minibatchAB(dataA, dataB, batchsize=1):
 
 
 def save_plots(steps, d_a, d_b, g_a, g_b):
-    # fig = plt.figure()
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15,5), sharex=True)
     
     ax1.plot(steps, d_a, label="D_A loss")

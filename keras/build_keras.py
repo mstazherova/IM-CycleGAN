@@ -110,7 +110,7 @@ def main(arguments):
             g_a_losses.append(g_a_loss)
             g_b_losses.append(g_b_loss)
             print('Saving generated images...')
-            save_generator(A, B, cycleA_generate, cycleB_generate, SAVE_PATH)
+            save_generator(A, B, cycleA_generate, cycleB_generate, SAVE_PATH, epoch)
 
         # TODO image pool
     
