@@ -56,6 +56,7 @@ def main(arguments):
     EPOCHS = arguments.epochs
     GPU = arguments.gpu
     GPU_NUMBER = arguments.gpu_number
+    DATASET = arguments.dataset
 
     # SAVE_PATH = '/tmp/stazherova/generated/'
 
@@ -70,8 +71,12 @@ def main(arguments):
         K.set_session(sess)
 
     parent_dir, _ = os.path.split(os.getcwd())
-    trainA = glob.glob(os.path.join(parent_dir, 'data/trainA/*'))
-    trainB = glob.glob(os.path.join(parent_dir, 'data/trainB/*'))
+    if DATASET == 1:
+        trainA = glob.glob(os.path.join(parent_dir, 'data/trainA/*'))
+        trainB = glob.glob(os.path.join(parent_dir, 'data/trainB/*'))
+    else:
+        trainA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses/*'))
+        trainB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses/*'))
 
     SAVE_PATH = os.path.join(parent_dir, 'generated/')
     DISPLAY_STEP = 500
@@ -101,6 +106,8 @@ def main(arguments):
             print('[Epoch {}/{}][Iteration {}]...'.format(epoch, EPOCHS, counter))
             print('D_a_loss: {:.2f}, D_b_loss: {:.2f}'.format(d_a_loss, d_b_loss))
             print('G_a_loss: {:.2f}, G_b_loss: {:.2f}'.format(g_a_loss, g_b_loss))
+            print('Saving generated images...')
+            save_generator(A, B, cycleA_generate, cycleB_generate, SAVE_PATH, epoch)
 
         if np.mod(counter, SUMMARY_STEP) == 0:
             print('Saving data for plots...')
@@ -109,8 +116,6 @@ def main(arguments):
             d_b_losses.append(d_b_loss)
             g_a_losses.append(g_a_loss)
             g_b_losses.append(g_b_loss)
-            print('Saving generated images...')
-            save_generator(A, B, cycleA_generate, cycleB_generate, SAVE_PATH, epoch)
 
         # TODO image pool
     
@@ -118,15 +123,16 @@ def main(arguments):
     save_plots(steps_array, d_a_losses, d_b_losses, g_a_losses, g_b_losses)
     
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-e', '--epochs', type=int, default=200, 
-                        help='Number of epochs. Default:100')
+    parser.add_argument('-e', '--epochs', type=int, default=150, 
+                        help='Number of epochs. Default:150')
     parser.add_argument('-gpu','--gpu', type=int, default=0,
                         help='If to use GPU. Default: 0')
     parser.add_argument('-number', '--gpu_number', type=int, default=0,
                         help='Which GPU to use. Default:0')
+    parser.add_argument('-d', '--dataset', type=int, default=0,
+                        help='What datset to use. Zebra/Horse: 0, MM:1. Default:0')
     args = parser.parse_args()
 
     main(args)

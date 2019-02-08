@@ -113,4 +113,4 @@ def save_plots(steps, d_a, d_b, g_a, g_b):
     ax2.plot(steps, g_b, label="G_B loss")
     ax2.legend()
 
-    fig.savefig(os.path.join(parent_dir, '/logs/losses{}.png'.format(time.strftime('%Y%m%d-%H%M%S'))))
+    fig.savefig(os.path.join(parent_dir, 'logs/losses{}.png'.format(time.strftime('%Y%m%d-%H%M%S'))))
