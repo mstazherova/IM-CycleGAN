@@ -71,10 +71,10 @@ def main(arguments):
         K.set_session(sess)
 
     parent_dir, _ = os.path.split(os.getcwd())
-    if DATASET == 1:
+    if DATASET == 0:
         trainA = glob.glob(os.path.join(parent_dir, 'data/trainA/*'))
         trainB = glob.glob(os.path.join(parent_dir, 'data/trainB/*'))
-    else:
+    elif DATASET == 1:
         trainA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses/*'))
         trainB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses/*'))
 
