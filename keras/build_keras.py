@@ -9,6 +9,7 @@ import tensorflow as tf
 from model_keras import discriminator, generator, unet_generator
 from utils_keras import disc_loss, gen_loss, cycle_loss, minibatchAB
 from utils_keras import save_generator, save_plots
+from images_keras import ImagePool
 
 from keras import backend as K
 from keras import optimizers
@@ -44,7 +45,7 @@ def build_model():
     weights_g = g_a.trainable_weights + g_b.trainable_weights
 
     training_updates = optimizers.Adam(lr=2e-4, beta_1=0.5, beta_2=0.999).get_updates(d_total, weights_d)
-    d_train_function = K.function([real_a, real_b], [d_a_loss, d_b_loss], training_updates)
+    d_train_function = K.function([real_a, real_b, fake_a, fake_b], [d_a_loss, d_b_loss], training_updates) 
     training_updates = optimizers.Adam(lr=2e-4, beta_1=0.5, beta_2=0.999).get_updates(g_total, weights_g)
     g_train_function = K.function([real_a, real_b], [g_a_loss, g_b_loss, cyc_loss], training_updates)
 
@@ -95,11 +96,22 @@ def main(arguments):
     d_train_function, g_train_function, cycleA_generate, cycleB_generate = build_model()
 
     train_batch = minibatchAB(trainA, trainB)
+
+    fake_A_pool = ImagePool()
+    fake_B_pool = ImagePool()
     
     while epoch < EPOCHS:
         epoch, A, B = next(train_batch)
-        d_a_loss, d_b_loss  = d_train_function([A, B])
+
+        tmp_fake_B, _ = cycleA_generate([A])
+        tmp_fake_A, _ = cycleB_generate([B])
+
+        _fake_B = fake_B_pool.query(tmp_fake_B)
+        _fake_A = fake_A_pool.query(tmp_fake_A)
         g_a_loss, g_b_loss, _ = g_train_function([A, B])
+        d_a_loss, d_b_loss  = d_train_function([A, B, _fake_A, _fake_B])
+        # d_a_loss, d_b_loss  = d_train_function([A, B])
+        # g_a_loss, g_b_loss, _ = g_train_function([A, B])
         counter += 1
 
         if np.mod(counter, DISPLAY_STEP) == 0:
@@ -117,7 +129,7 @@ def main(arguments):
             g_a_losses.append(g_a_loss)
             g_b_losses.append(g_b_loss)
 
-        # TODO image pool
+    # TODO decay learning rate after 100 epochs
     
     print('Saving plots...')
     save_plots(steps_array, d_a_losses, d_b_losses, g_a_losses, g_b_losses)
