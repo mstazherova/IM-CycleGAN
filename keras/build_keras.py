@@ -79,7 +79,7 @@ def main(arguments):
         trainA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses/*'))
         trainB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses/*'))
 
-    SAVE_PATH = os.path.join(parent_dir, 'generated/')
+    SAVE_PATH = os.path.join(parent_dir, 'generated{}/'.format(time.strftime('%Y%m%d-%H%M%S')))
     DISPLAY_STEP = 500
     # SAVE_STEP = 10
     SUMMARY_STEP = min(len(trainA), len(trainB))
@@ -130,6 +130,7 @@ def main(arguments):
             g_b_losses.append(g_b_loss)
 
     # TODO decay learning rate after 100 epochs
+    # TODO print time
     
     print('Saving plots...')
     save_plots(steps_array, d_a_losses, d_b_losses, g_a_losses, g_b_losses)
@@ -144,7 +145,7 @@ if __name__ == "__main__":
     parser.add_argument('-number', '--gpu_number', type=int, default=0,
                         help='Which GPU to use. Default:0')
     parser.add_argument('-d', '--dataset', type=int, default=0,
-                        help='What datset to use. Zebra/Horse: 0, MM:1. Default:0')
+                        help='What dataset to use. Zebra/Horse: 0, MM:1. Default:0')
     args = parser.parse_args()
 
     main(args)
