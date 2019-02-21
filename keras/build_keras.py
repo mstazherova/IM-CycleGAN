@@ -21,7 +21,7 @@ from keras import optimizers
 def build_model(h=256, w=256):
     fake_pool_a = K.placeholder(shape=(None, h, w, 3))
     fake_pool_b = K.placeholder(shape=(None, h, w, 3))
-    lr = K.placeholder(shape=())
+    # lr = K.placeholder(shape=())
 
     d_a = patch_discriminator()
     d_b = patch_discriminator()
@@ -53,8 +53,8 @@ def build_model(h=256, w=256):
     weights_g = g_a.trainable_weights + g_b.trainable_weights
 
     # Define optimizers
-    adam_disc = optimizers.Adam(lr=lr, beta_1=0.5, beta_2=0.999)
-    adam_gen = optimizers.Adam(lr=lr, beta_1=0.5, beta_2=0.999)
+    adam_disc = optimizers.Adam(lr=2e-4, beta_1=0.5, beta_2=0.999)
+    adam_gen = optimizers.Adam(lr=2e-4, beta_1=0.5, beta_2=0.999)
 
     training_updates_disc = adam_disc.get_updates(weights_d, [], d_total)  #pylint: disable=too-many-function-args
     d_train_function = K.function([real_a, real_b, fake_pool_a, fake_pool_b], [d_a_loss, d_b_loss], training_updates_disc) 
