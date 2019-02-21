@@ -22,11 +22,12 @@ def mse(target, output):
     return K.mean(K.square(output - target), axis=-1)
 
 
-def disc_loss(disc, real, pool):
+def disc_loss(disc, real, fake, pool):
     d_real = disc([real])  # input  -> [0, 1].  Prob that real input is real.
-    d_fake = disc([pool])  # generated sample -> [0, 1]. Prob that generated output is real.
+    d_fake = disc([fake]) # generated sample -> [0, 1]. Prob that generated output is real.
+    d_fake_pool = disc([pool]) 
     d_loss_real = mse(K.ones_like(d_real) * 0.9, d_real)
-    d_loss_fake = mse(K.zeros_like(d_fake), d_fake)
+    d_loss_fake = mse(K.zeros_like(d_fake), d_fake_pool)
     d_loss = (d_loss_real + d_loss_fake)/2
     
     return d_loss
@@ -68,7 +69,7 @@ def save_generator(A, B, g_a, g_b, path, epoch):
     rec_a = g_a.predict(generated_b)
     generated_a = g_a.predict(B)
     rec_b = g_b.predict(generated_a)
-    
+
     arr = np.concatenate([A, B, generated_b, generated_a, rec_a, rec_b])
     save_image(arr, path, epoch, rows=3)
 
