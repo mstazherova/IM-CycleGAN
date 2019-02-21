@@ -138,7 +138,7 @@ def generator(image_size=256, channels=3, res_blocks=6):
     return Model(inputs=inputs, outputs=[outputs])    
 
 
-def unet_generator(isize=img_width, nc_in=img_depth, nc_out=img_depth, ngf=ngf):    
+def unet_generator(isize=256, nc_in=3, nc_out=3, ngf=64, fixed_input_size=True):    
     max_nf = 8*ngf    
     def block(x, s, nf_in, use_batchnorm=True, nf_out=None, nf_next=None):
         assert s>=2 and s%2==0
@@ -146,8 +146,8 @@ def unet_generator(isize=img_width, nc_in=img_depth, nc_out=img_depth, ngf=ngf):
             nf_next = min(nf_in*2, max_nf)
         if nf_out is None:
             nf_out = nf_in
-        x = conv2d(x, nf_next, kernel_size=4, strides=2, use_bias=(not (use_batchnorm and s>2)),
-                   padding="same", name = 'conv_{0}'.format(s))
+        x = conv2d(nf_next, kernel_size=4, strides=2, use_bias=(not (use_batchnorm and s>2)),
+                   padding="same", name = 'conv_{0}'.format(s))(x)
         if s>2:
             if use_batchnorm:
                 x = batchnorm()(x, training=1)
@@ -160,14 +160,14 @@ def unet_generator(isize=img_width, nc_in=img_depth, nc_out=img_depth, ngf=ngf):
                             name = 'convt.{0}'.format(s))(x)        
         x = Cropping2D(1)(x)
         if use_batchnorm:
-            x = batchnorm()(x, training=1)
+            x = batchnorm()(x, training=1)  # , training=1
         if s <=8:
-            x = Dropout(0.5)(x, training=1)
+            x = Dropout(0.5)(x, training=1)  # , training=1
         return x
     
-    s = isize 
-   
+    s = isize if fixed_input_size else None
+ 
     y = inputs = Input(shape=(s, s, nc_in))        
-    y = block(y, isize, nc_in, use_batchnorm=False, nf_out=nc_out, nf_next=ngf)
+    y = block(y, isize, nc_in, False, nf_out=nc_out, nf_next=ngf)
     y = Activation('tanh')(y)
     return Model(inputs=inputs, outputs=[y])
