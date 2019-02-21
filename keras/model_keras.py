@@ -84,7 +84,7 @@ def discriminator(channels=3, ndf=64, hidden_layers=3, channel_first=False):
     return Model(inputs=[inputs], outputs=x)
 
 
-def patch_discriminator(w=img_width, h=img_height, ndf=ndf):
+def patch_discriminator(w=256, h=256):
     """Returns a simple convolutional discriminator, implementing the PatchGAN 70X70 
     discriminator."""
 
@@ -138,7 +138,8 @@ def generator(image_size=256, channels=3, res_blocks=6):
     return Model(inputs=inputs, outputs=[outputs])    
 
 
-def unet_generator(isize=256, nc_in=3, nc_out=3, ngf=64, fixed_input_size=True):    
+
+def unet_generator(isize=256, nc_in=3, nc_out=3, ngf=64, fixed_input_size=True, channel_first=False):    
     max_nf = 8*ngf    
     def block(x, s, nf_in, use_batchnorm=True, nf_out=None, nf_next=None):
         assert s>=2 and s%2==0
@@ -166,8 +167,10 @@ def unet_generator(isize=256, nc_in=3, nc_out=3, ngf=64, fixed_input_size=True):
         return x
     
     s = isize if fixed_input_size else None
- 
-    y = inputs = Input(shape=(s, s, nc_in))        
+    if channel_first:
+        y = inputs = Input(shape=(nc_in, s, s))
+    else:
+        y = inputs = Input(shape=(s, s, nc_in))        
     y = block(y, isize, nc_in, False, nf_out=nc_out, nf_next=ngf)
     y = Activation('tanh')(y)
     return Model(inputs=inputs, outputs=[y])

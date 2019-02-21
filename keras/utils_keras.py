@@ -19,7 +19,7 @@ def mae(target, output):
 
 def mse(target, output):
     """Mean squared error."""
-    return K.mean(K.square(output - target), axis=-1)
+    return K.mean(K.square(output - target))  # axis=-1
 
 
 def disc_loss(disc, real, fake, pool):
