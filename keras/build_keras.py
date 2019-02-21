@@ -116,13 +116,13 @@ def main(arguments):
     while epoch < EPOCHS:
         epoch, A, B = next(train_batch)
 
-        # Learning rate decay
-        if epoch < 100:
-            lr = 2e-4
-        else:
-            lr = 2e-4 - (2e-4 * (epoch - 100) / 100)
-        adam_disc.lr = lr
-        adam_gen.lr = lr
+        # # Learning rate decay
+        # if epoch < 100:
+        #     lr = 2e-4
+        # else:
+        #     lr = 2e-4 - (2e-4 * (epoch - 100) / 100)
+        # adam_disc.lr = lr
+        # adam_gen.lr = lr
 
         # tmp_fake_B, _ = cycleA_generate([A])
         # tmp_fake_A, _ = cycleB_generate([B])
