@@ -34,8 +34,8 @@ def build_model(h=256, w=256):
     fake_a = g_a.outputs[0]
     rec_b = g_b([fake_a])
 
-    d_a_loss = disc_loss(d_a, real_a, fake_pool_a)
-    d_b_loss = disc_loss(d_b, real_b, fake_pool_b)
+    d_a_loss = disc_loss(d_a, real_a, fake_a, fake_pool_a)
+    d_b_loss = disc_loss(d_b, real_b, fake_b, fake_pool_b)
     g_a_loss = gen_loss(d_a, fake_a)
     g_b_loss = gen_loss(d_b, fake_b)
     cycle_a_loss = cycle_loss(rec_a, real_a)
