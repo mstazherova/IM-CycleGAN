@@ -12,27 +12,33 @@ plt.switch_backend('agg')
 
 parent_dir, _ = os.path.split(os.getcwd())
 
-def mse(output, target):
-    return K.mean(K.abs(K.square(output-target)))
+def mae(target, output):
+    """Mean absolute error."""
+    return K.mean(K.abs(output - target), axis=-1)
 
 
-def disc_loss(disc, real, fake):
+def mse(target, output):
+    """Mean squared error."""
+    return K.mean(K.square(output - target), axis=-1)
+
+
+def disc_loss(disc, real, pool):
     d_real = disc([real])  # input  -> [0, 1].  Prob that real input is real.
-    d_fake = disc([fake])  # generated sample -> [0, 1]. Prob that generated output is real.
-    d_loss_real = mse(d_real, K.ones_like(d_real))
-    d_loss_fake = mse(d_fake, K.zeros_like(d_fake))
+    d_fake = disc([pool])  # generated sample -> [0, 1]. Prob that generated output is real.
+    d_loss_real = mse(K.ones_like(d_real) * 0.9, d_real)
+    d_loss_fake = mse(K.zeros_like(d_fake), d_fake)
     d_loss = (d_loss_real + d_loss_fake)/2
     
     return d_loss
 
 
 def cycle_loss(reconstructed, real):
-    return K.mean(K.abs(reconstructed - real))
+    return mae(real, reconstructed)
 
 
 def gen_loss(disc, fake):
     d_gen = disc([fake])
-    return mse(d_gen, K.ones_like(d_gen))
+    return mse(K.ones_like(d_gen), d_gen)
 
 
 def read_image(img, imagesize=256):
@@ -54,16 +60,16 @@ def save_image(X, path, epoch, rows=1, image_size=256):
     pil_X.save('{}epoch{}.jpg'.format(path, epoch), 'JPEG')
 
 
-def save_generator(A, B, rec_a, rec_b, path, epoch):
+def save_generator(A, B, g_a, g_b, path, epoch):
     if not os.path.isdir(path):
         os.makedirs(path)
 
-    def G(generated, X):
-        r = np.array([generated([X[i:i+1]]) for i in range(X.shape[0])])
-        return r.swapaxes(0,1)[:,:,0]        
-    rA = G(rec_a, A)
-    rB = G(rec_b, B)
-    arr = np.concatenate([A,B,rA[0],rB[0],rA[1],rB[1]])
+    generated_b = g_b.predict(A)
+    rec_a = g_a.predict(generated_b)
+    generated_a = g_a.predict(B)
+    rec_b = g_b.predict(generated_a)
+    
+    arr = np.concatenate([A, B, generated_b, generated_a, rec_a, rec_b])
     save_image(arr, path, epoch, rows=3)
 
 

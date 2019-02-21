@@ -7,13 +7,23 @@ from keras.initializers import RandomNormal
 
 # TODO write docstrings
 
+ngf = 32  # Number of filters in first layer of generator
+ndf = 64  # Number of filters in first layer of discriminator
+batch_size = 1  
+img_width = 256  
+img_height = 256  
+img_depth = 3 
+
+conv_init = RandomNormal(0, 0.02)
+gamma_init = RandomNormal(1., 0.02) # for batch normalization
+
 def batchnorm():
     return BatchNormalization(momentum=0.9, axis=3, epsilon=1e-5, 
-                              gamma_initializer = RandomNormal(1., 0.02))
+                              gamma_initializer = gamma_init)
 
 
-def conv2d(x, *a, **k):
-    return Conv2D(kernel_initializer = RandomNormal(0, 0.02), *a, **k)(x)
+def conv2d(*a, **k):
+    return Conv2D(kernel_initializer = conv_init, *a, **k)
 
 
 def conv_block(x, filters, size, stride=(2, 2), 
@@ -74,6 +84,35 @@ def discriminator(channels=3, ndf=64, hidden_layers=3, channel_first=False):
     return Model(inputs=[inputs], outputs=x)
 
 
+def patch_discriminator(w=img_width, h=img_height, ndf=ndf):
+    """Returns a simple convolutional discriminator, implementing the PatchGAN 70X70 
+    discriminator."""
+
+    n_conv = 3
+
+    inp = Input(shape=(h, w, 3))
+    x = inp
+
+    for depth in range(n_conv):
+        x = Conv2D(ndf*(2**depth), kernel_size=4, strides=2, padding='same', kernel_initializer=conv_init)(x)
+        if depth != 0:
+            x = batchnorm()(x, training=1)
+        x = LeakyReLU(0.2)(x)
+
+    # Last Conv
+    x = ZeroPadding2D(1)(x)
+    x = Conv2D(ndf * (2 ** n_conv), kernel_size=4, kernel_initializer=conv_init)(x)
+    x = batchnorm()(x, training=1)
+    x = LeakyReLU(0.2)(x)
+
+    # Decision layer
+    x = ZeroPadding2D(1)(x)
+    out = Conv2D(1, kernel_size=4, kernel_initializer=conv_init, activation='sigmoid')(x)
+    model = Model(inputs=inp, outputs=out)
+
+    return model    
+
+
 def generator(image_size=256, channels=3, res_blocks=6):
     """Builds a generator that consists of an encoder, a transformer 
     and a decoder."""
@@ -99,7 +138,7 @@ def generator(image_size=256, channels=3, res_blocks=6):
     return Model(inputs=inputs, outputs=[outputs])    
 
 
-def unet_generator(isize=256, nc_in=3, nc_out=3, ngf=64):    
+def unet_generator(isize=img_width, nc_in=img_depth, nc_out=img_depth, ngf=ngf):    
     max_nf = 8*ngf    
     def block(x, s, nf_in, use_batchnorm=True, nf_out=None, nf_next=None):
         assert s>=2 and s%2==0
