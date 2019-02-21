@@ -14,6 +14,8 @@ from images_keras import ImagePool
 from keras import backend as K
 from keras import optimizers
 
+# TODO write docstrings
+
 
 def build_model():
     d_a = discriminator()
@@ -140,12 +142,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--epochs', type=int, default=150, 
                         help='Number of epochs. Default:150')
-    parser.add_argument('-gpu','--gpu', type=int, default=0,
-                        help='If to use GPU. Default: 0')
-    parser.add_argument('-number', '--gpu_number', type=int, default=0,
+    parser.add_argument('-gpu','--gpu', type=int, default=1,
+                        help='If to use GPU. Default: 1')
+    parser.add_argument('-n', '--gpu_number', type=int, default=0,
                         help='Which GPU to use. Default:0')
     parser.add_argument('-d', '--dataset', type=int, default=0,
-                        help='What dataset to use. Zebra/Horse: 0, MM:1. Default:0')
+                        help='Which dataset to use. Z/H: 0, MM:1. Default:0')
     args = parser.parse_args()
 
     main(args)

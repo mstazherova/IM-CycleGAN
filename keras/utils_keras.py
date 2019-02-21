@@ -8,6 +8,7 @@ import time
 from matplotlib import pyplot as plt
 plt.switch_backend('agg')
 
+# TODO write docstrings
 
 parent_dir, _ = os.path.split(os.getcwd())
 
@@ -51,16 +52,6 @@ def save_image(X, path, epoch, rows=1, image_size=256):
     int_X = int_X.reshape(rows, -1, image_size, image_size,3).swapaxes(1,2).reshape(rows*image_size,-1, 3)
     pil_X = Image.fromarray(int_X)
     pil_X.save('{}epoch{}.jpg'.format(path, epoch), 'JPEG')
-
-
-# def save_image(X, path, rows=1, image_size=256):
-#     assert X.shape[0] % rows == 0
-#     int_X = ((X * 255).clip(0, 255).astype('uint8'))
-#     int_X = int_X.reshape(-1, image_size, image_size, 3)
-#     int_X = int_X.reshape(rows, -1, image_size, image_size, 3).swapaxes(1, 2).reshape(rows * image_size, -1, 3)
-#     pil_X = Image.fromarray(int_X)
-#     t = str(time.time())
-#     pil_X.save(path + t, 'JPEG')
 
 
 def save_generator(A, B, rec_a, rec_b, path, epoch):

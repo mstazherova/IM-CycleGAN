@@ -1,6 +1,8 @@
 from random import uniform, randint
 import numpy as np
 
+# TODO write docstrings
+
 class ImagePool():
     def __init__(self, pool_size=50):
         self.pool_size = pool_size

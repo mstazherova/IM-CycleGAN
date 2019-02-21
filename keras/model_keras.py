@@ -5,6 +5,7 @@ from keras.layers import Input, Activation, Add, Concatenate
 from keras.layers.advanced_activations import LeakyReLU
 from keras.initializers import RandomNormal
 
+# TODO write docstrings
 
 def batchnorm():
     return BatchNormalization(momentum=0.9, axis=3, epsilon=1e-5, 
