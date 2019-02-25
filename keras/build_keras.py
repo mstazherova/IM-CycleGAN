@@ -61,7 +61,7 @@ def build_model(h=256, w=256):
     training_updates_gen = adam_gen.get_updates(weights_g, [], g_total)  #pylint: disable=too-many-function-args
     g_train_function = K.function([real_a, real_b], [g_a_loss, g_b_loss, cyc_loss], training_updates_gen)
 
-    return  d_train_function, g_train_function, g_a, g_b, d_a, d_b
+    return  d_train_function, g_train_function, g_a, g_b, d_a, d_b, adam_disc, adam_gen
 
 
 def main(arguments):
@@ -103,7 +103,7 @@ def main(arguments):
     g_a_losses = []
     g_b_losses = []
 
-    d_trainer, g_trainer, g_a, g_b, d_a, d_b = build_model()
+    d_trainer, g_trainer, g_a, g_b, d_a, d_b, adam_disc, adam_gen = build_model()
 
     train_batch = minibatchAB(trainA, trainB)
 
@@ -114,13 +114,13 @@ def main(arguments):
     while epoch < EPOCHS:
         epoch, A, B = next(train_batch)
 
-        # # Learning rate decay
-        # if epoch < 100:
-        #     lr = 2e-4
-        # else:
-        #     lr = 2e-4 - (2e-4 * (epoch - 100) / 100)
-        # adam_disc.lr = lr
-        # adam_gen.lr = lr
+        # Learning rate decay
+        if epoch < 100:
+            lr = 2e-4
+        else:
+            lr = 2e-4 - (2e-4 * (epoch - 100) / 100)
+        adam_disc.lr = lr
+        adam_gen.lr = lr
 
         # tmp_fake_B, _ = cycleA_generate([A])
         # tmp_fake_A, _ = cycleB_generate([B])
@@ -187,8 +187,6 @@ def main(arguments):
             g_a_losses.append(g_a_loss)
             g_b_losses.append(g_b_loss)
 
-
-    # TODO print time
     
     print('Finished training in {:.2f} minutes'.format((time.time()-t0)/60))
     print('Saving plots...')
