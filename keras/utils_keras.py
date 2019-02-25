@@ -19,7 +19,7 @@ def mae(target, output):
 
 def mse(target, output):
     """Mean squared error."""
-    return K.mean(K.square(output - target))  # axis=-1
+    return K.mean(K.square(output - target))  # ? axis=-1 doesn't work
 
 
 def disc_loss(disc, real, fake, pool):
@@ -100,7 +100,7 @@ def minibatchAB(dataA, dataB, batchsize=1):
         tmpsize = yield max(ep1, ep2), A, B
 
 
-def save_plots(steps, d_a, d_b, g_a, g_b):
+def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15,5), sharex=True)
     
     ax1.plot(steps, d_a, label="D_A loss")
@@ -111,4 +111,11 @@ def save_plots(steps, d_a, d_b, g_a, g_b):
     ax2.plot(steps, g_b, label="G_B loss")
     ax2.legend()
 
-    fig.savefig(os.path.join(parent_dir, 'logs/losses{}.png'.format(time.strftime('%Y%m%d-%H%M%S'))))
+    fig.savefig(os.path.join(parent_dir, 'logs/dataset{}-losses{}.png'.format(dataset, time.strftime('%Y%m%d-%H%M%S'))))
+
+
+def save_models(epoch, genA2B, genB2A, discA, discB):
+    genA2B.save(os.path.join(parent_dir, 'models/generatorA2B_epoch_{}.h5'.format(epoch)))
+    genB2A.save(os.path.join(parent_dir, 'models/generatorB2A_epoch_{}.h5'.format(epoch)))
+    discA.save(os.path.join(parent_dir, 'models/discriminatorA_epoch_{}.h5'.format(epoch)))
+    discB.save(os.path.join(parent_dir, 'models/discriminatorB_epoch_{}.h5'.format(epoch)))

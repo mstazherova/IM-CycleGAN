@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from model_keras import patch_discriminator, unet_generator
 from utils_keras import disc_loss, gen_loss, cycle_loss, minibatchAB
-from utils_keras import save_generator, save_plots
+from utils_keras import save_generator, save_plots, save_models
 from images_keras import ImagePool
 
 from keras import backend as K
@@ -61,7 +61,7 @@ def build_model(h=256, w=256):
     training_updates_gen = adam_gen.get_updates(weights_g, [], g_total)  #pylint: disable=too-many-function-args
     g_train_function = K.function([real_a, real_b], [g_a_loss, g_b_loss, cyc_loss], training_updates_gen)
 
-    return  d_train_function, g_train_function, g_a, g_b
+    return  d_train_function, g_train_function, g_a, g_b, d_a, d_b
 
 
 def main(arguments):
@@ -70,8 +70,6 @@ def main(arguments):
     GPU = arguments.gpu
     GPU_NUMBER = arguments.gpu_number
     DATASET = arguments.dataset
-
-    # SAVE_PATH = '/tmp/stazherova/generated/'
 
     if GPU == 1:
         os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(GPU_NUMBER)
@@ -91,7 +89,7 @@ def main(arguments):
         trainA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses/*'))
         trainB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses/*'))
 
-    SAVE_PATH = os.path.join(parent_dir, 'generated{}/'.format(time.strftime('%Y%m%d-%H%M%S')))
+    SAVE_PATH = os.path.join(parent_dir, 'results/dataset{}-generated{}/'.format(DATASET, time.strftime('%Y%m%d-%H%M%S')))
     DISPLAY_STEP = 500
 
     SUMMARY_STEP = min(len(trainA), len(trainB))
@@ -105,7 +103,7 @@ def main(arguments):
     g_a_losses = []
     g_b_losses = []
 
-    d_trainer, g_trainer, g_a, g_b = build_model()
+    d_trainer, g_trainer, g_a, g_b, d_a, d_b = build_model()
 
     train_batch = minibatchAB(trainA, trainB)
 
@@ -194,7 +192,10 @@ def main(arguments):
     
     print('Finished training in {:.2f} minutes'.format((time.time()-t0)/60))
     print('Saving plots...')
-    save_plots(steps_array, d_a_losses, d_b_losses, g_a_losses, g_b_losses)
+    save_plots(steps_array, DATASET, d_a_losses, d_b_losses, g_a_losses, g_b_losses) 
+    print('Saving models...')
+    save_models(epoch, g_b, g_a, d_a, d_b)
+    print('Done!')
     
 
 if __name__ == "__main__":
