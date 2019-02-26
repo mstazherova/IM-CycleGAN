@@ -70,6 +70,7 @@ def main(arguments):
     GPU = arguments.gpu
     GPU_NUMBER = arguments.gpu_number
     DATASET = arguments.dataset
+    SAVE = arguments.save_weights
 
     if GPU == 1:
         os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(GPU_NUMBER)
@@ -88,6 +89,8 @@ def main(arguments):
     elif DATASET == 1:
         trainA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses/*'))
         trainB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses/*'))
+        testA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses_test/*'))
+        testB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses_test/*'))
 
     SAVE_PATH = os.path.join(parent_dir, 'results/dataset{}-generated{}/'.format(DATASET, time.strftime('%Y%m%d-%H%M%S')))
     DISPLAY_STEP = 500
@@ -106,6 +109,7 @@ def main(arguments):
     d_trainer, g_trainer, g_a, g_b, d_a, d_b, adam_disc, adam_gen = build_model()
 
     train_batch = minibatchAB(trainA, trainB)
+    test_batch = minibatchAB(testA, testB)
 
     # Initialize fake images pools
     pool_a2b = []
@@ -113,6 +117,7 @@ def main(arguments):
 
     while epoch < EPOCHS:
         epoch, A, B = next(train_batch)
+        _, testA, testB = next(test_batch)
 
         # Learning rate decay
         if epoch < 100:
@@ -121,11 +126,6 @@ def main(arguments):
             lr = 2e-4 - (2e-4 * (epoch - 100) / 100)
         adam_disc.lr = lr
         adam_gen.lr = lr
-
-        # tmp_fake_B, _ = cycleA_generate([A])
-        # tmp_fake_A, _ = cycleB_generate([B])
-        # _fake_B = fake_B_pool.query(tmp_fake_B)
-        # _fake_A = fake_A_pool.query(tmp_fake_A)
 
         # Fake images pool 
         a2b = g_b.predict(A)
@@ -177,7 +177,7 @@ def main(arguments):
             print('D_a_loss: {:.2f}, D_b_loss: {:.2f}'.format(d_a_loss, d_b_loss))
             print('G_a_loss: {:.2f}, G_b_loss: {:.2f}'.format(g_a_loss, g_b_loss))
             print('Saving generated images...')
-            save_generator(A, B, g_a, g_b, SAVE_PATH, epoch)
+            save_generator(testA, testB, g_a, g_b, SAVE_PATH, epoch)
 
         if np.mod(counter, SUMMARY_STEP) == 0:
             print('Saving data for plots...')
@@ -191,8 +191,11 @@ def main(arguments):
     print('Finished training in {:.2f} minutes'.format((time.time()-t0)/60))
     print('Saving plots...')
     save_plots(steps_array, DATASET, d_a_losses, d_b_losses, g_a_losses, g_b_losses) 
-    print('Saving models...')
-    save_models(epoch, g_b, g_a, d_a, d_b)
+
+    if SAVE == 1:
+        print('Saving models...')
+        save_models(epoch, g_b, g_a, d_a, d_b)
+
     print('Done!')
     
 
@@ -206,6 +209,8 @@ if __name__ == "__main__":
                         help='Which GPU to use. Default:0')
     parser.add_argument('-d', '--dataset', type=int, default=0,
                         help='Which dataset to use. Z/H: 0, MM:1. Default:0')
+    parser.add_argument('-sw', '--save_weights', type=int, default=0,
+                        help='If to save models. Default:0')
     args = parser.parse_args()
 
     main(args)

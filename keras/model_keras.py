@@ -138,7 +138,6 @@ def generator(image_size=256, channels=3, res_blocks=6):
     return Model(inputs=inputs, outputs=[outputs])    
 
 
-
 def unet_generator(isize=256, nc_in=3, nc_out=3, ngf=64, fixed_input_size=True, channel_first=False):    
     max_nf = 8*ngf    
     def block(x, s, nf_in, use_batchnorm=True, nf_out=None, nf_next=None):
