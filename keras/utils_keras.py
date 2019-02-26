@@ -4,6 +4,7 @@ from PIL import Image
 import numpy as np
 from random import shuffle
 import time
+import seaborn as sns
 
 from matplotlib import pyplot as plt
 plt.switch_backend('agg')
@@ -101,6 +102,7 @@ def minibatchAB(dataA, dataB, batchsize=1):
 
 
 def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
+    sns.set()
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15,5), sharex=True)
     
     ax1.plot(steps, d_a, label="D_A loss")
