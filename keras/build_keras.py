@@ -85,6 +85,8 @@ def main(arguments):
     if DATASET == 0:
         trainA = glob.glob(os.path.join(parent_dir, 'data/trainA/*'))
         trainB = glob.glob(os.path.join(parent_dir, 'data/trainB/*'))
+        testA = glob.glob(os.path.join(parent_dir, 'data/testA/*'))
+        testB = glob.glob(os.path.join(parent_dir, 'data/testB/*'))
     elif DATASET == 1:
         trainA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses/*'))
         trainB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses/*'))
