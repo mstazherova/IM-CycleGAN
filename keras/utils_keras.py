@@ -73,7 +73,7 @@ def save_generator(A, B, g_a, g_b, path, epoch):
 
     arr = np.concatenate([A, B, generated_b, generated_a, rec_a, rec_b])
     save_image(arr, path, epoch, rows=3)
-
+    
 
 def minibatch(data, batchsize=1):
     length = len(data)
@@ -102,6 +102,7 @@ def minibatchAB(dataA, dataB, batchsize=1):
 
 
 def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
+    # TODO add labels to the axes
     sns.set()
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15,5), sharex=True)
     

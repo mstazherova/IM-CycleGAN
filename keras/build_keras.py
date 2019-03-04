@@ -21,7 +21,6 @@ from keras import optimizers
 def build_model(h=256, w=256):
     fake_pool_a = K.placeholder(shape=(None, h, w, 3))
     fake_pool_b = K.placeholder(shape=(None, h, w, 3))
-    # lr = K.placeholder(shape=())
 
     d_a = patch_discriminator()
     d_b = patch_discriminator()
@@ -92,7 +91,8 @@ def main(arguments):
         testA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses_test/*'))
         testB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses_test/*'))
 
-    SAVE_PATH = os.path.join(parent_dir, 'results/dataset{}-generated{}/'.format(DATASET, time.strftime('%Y%m%d-%H%M%S')))
+    SAVE_PATH_TRAIN = os.path.join(parent_dir, 'results/dataset{}-generated-train{}/'.format(DATASET, time.strftime('%Y%m%d-%H%M%S')))
+    SAVE_PATH_TEST = os.path.join(parent_dir, 'results/dataset{}-generated-test{}/'.format(DATASET, time.strftime('%Y%m%d-%H%M%S')))
     DISPLAY_STEP = 500
 
     SUMMARY_STEP = min(len(trainA), len(trainB))
@@ -176,8 +176,10 @@ def main(arguments):
             print('[Epoch {}/{}][Iteration {}]...'.format(epoch, EPOCHS, counter))
             print('D_a_loss: {:.2f}, D_b_loss: {:.2f}'.format(d_a_loss, d_b_loss))
             print('G_a_loss: {:.2f}, G_b_loss: {:.2f}'.format(g_a_loss, g_b_loss))
-            print('Saving generated images...')
-            save_generator(testA, testB, g_a, g_b, SAVE_PATH, epoch)
+            print('Saving generated training images...')
+            save_generator(A, B, g_a, g_b, SAVE_PATH_TRAIN, epoch)
+            print('Saving generated test images...')
+            save_generator(testA, testB, g_a, g_b, SAVE_PATH_TEST, epoch)
 
         if np.mod(counter, SUMMARY_STEP) == 0:
             print('Saving data for plots...')
