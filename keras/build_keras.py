@@ -1,24 +1,29 @@
+"""Creating and training the network."""
+
 import os
 import argparse
 import time
 import glob
-import numpy as np
 import random
+import numpy as np
 
 import tensorflow as tf
 
 from model_keras import patch_discriminator, unet_generator
 from utils_keras import disc_loss, gen_loss, cycle_loss, minibatchAB
 from utils_keras import save_generator, save_plots, save_models
-from images_keras import ImagePool
+# from images_keras import ImagePool
 
 from keras import backend as K
 from keras import optimizers
 
-# TODO write docstrings
+img_width = 256
+img_height = 256
 
+def build_model(w=img_width, h=img_height):
+    """Builds the complete model.
 
-def build_model(h=256, w=256):
+    Creates training functions for discriminator and generator networks."""
     fake_pool_a = K.placeholder(shape=(None, h, w, 3))
     fake_pool_b = K.placeholder(shape=(None, h, w, 3))
 
@@ -56,7 +61,7 @@ def build_model(h=256, w=256):
     adam_gen = optimizers.Adam(lr=2e-4, beta_1=0.5, beta_2=0.999)
 
     training_updates_disc = adam_disc.get_updates(weights_d, [], d_total)  #pylint: disable=too-many-function-args
-    d_train_function = K.function([real_a, real_b, fake_pool_a, fake_pool_b], [d_a_loss, d_b_loss], training_updates_disc) 
+    d_train_function = K.function([real_a, real_b, fake_pool_a, fake_pool_b], [d_a_loss, d_b_loss], training_updates_disc)
     training_updates_gen = adam_gen.get_updates(weights_g, [], g_total)  #pylint: disable=too-many-function-args
     g_train_function = K.function([real_a, real_b], [g_a_loss, g_b_loss, cyc_loss], training_updates_gen)
 
@@ -64,6 +69,7 @@ def build_model(h=256, w=256):
 
 
 def main(arguments):
+    """Main training loop."""
     t0 = time.time()
     EPOCHS = arguments.epochs
     GPU = arguments.gpu
@@ -72,8 +78,8 @@ def main(arguments):
     SAVE = arguments.save_weights
 
     if GPU == 1:
-        os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(GPU_NUMBER)
-        os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+        os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(GPU_NUMBER)
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
         config = tf.ConfigProto(log_device_placement=True)
         config.gpu_options.per_process_gpu_memory_fraction = 0.5  # pylint: disable=no-member
@@ -129,7 +135,7 @@ def main(arguments):
         adam_disc.lr = lr
         adam_gen.lr = lr
 
-        # Fake images pool 
+        # Fake images pool
         a2b = g_b.predict(A)
         b2a = g_a.predict(B)
 
@@ -158,7 +164,7 @@ def main(arguments):
             else:
                 p = random.uniform(0, 1)
 
-                if p >0.5:
+                if p > 0.5:
                     index = random.randint(0, 49)
                     tmp = np.copy(pool_b2a[index])
                     pool_b2a[index] = element
@@ -169,7 +175,7 @@ def main(arguments):
         pool_a = np.array(tmp_b2a)
         pool_b = np.array(tmp_a2b)
 
-        d_a_loss, d_b_loss  = d_trainer([A, B, pool_a, pool_b])
+        d_a_loss, d_b_loss = d_trainer([A, B, pool_a, pool_b])
         g_a_loss, g_b_loss, _ = g_trainer([A, B])
 
         counter += 1
@@ -191,23 +197,23 @@ def main(arguments):
             g_a_losses.append(g_a_loss)
             g_b_losses.append(g_b_loss)
 
-    
+
     print('Finished training in {:.2f} minutes'.format((time.time()-t0)/60))
     print('Saving plots...')
-    save_plots(steps_array, DATASET, d_a_losses, d_b_losses, g_a_losses, g_b_losses) 
+    save_plots(steps_array, DATASET, d_a_losses, d_b_losses, g_a_losses, g_b_losses)
 
     if SAVE == 1:
         print('Saving models...')
         save_models(epoch, g_b, g_a, d_a, d_b)
 
     print('Done!')
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-e', '--epochs', type=int, default=150, 
+    parser.add_argument('-e', '--epochs', type=int, default=150,
                         help='Number of epochs. Default:150')
-    parser.add_argument('-gpu','--gpu', type=int, default=1,
+    parser.add_argument('-gpu', '--gpu', type=int, default=1,
                         help='If to use GPU. Default: 1')
     parser.add_argument('-n', '--gpu_number', type=int, default=0,
                         help='Which GPU to use. Default:0')

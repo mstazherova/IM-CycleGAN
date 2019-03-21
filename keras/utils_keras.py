@@ -105,7 +105,6 @@ def minibatchAB(dataA, dataB, batchsize=1):
 
 
 def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
-    # TODO add labels to the axes and name to plots
     sns.set()
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15,5), sharex=True)
     plt.xlabel("Iterations")
