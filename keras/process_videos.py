@@ -4,9 +4,6 @@ from PIL import ImageOps
 
 folder = 'data/mm/no_glasses'
 capture = cv2.VideoCapture('data/mm/IMG_0001.mov')
-# width  = int(capture.get(3))
-# height = int(capture.get(4))
-# fps = int(capture.get(5))
 
 
 def getFrame(sec):
