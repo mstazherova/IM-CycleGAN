@@ -1,15 +1,18 @@
-import os
-from keras import backend as K
-from PIL import Image
-import numpy as np
-from random import shuffle
-import time
-import seaborn as sns
+"""Utility functions."""
 
+import os
+import time
+
+from random import shuffle
+from PIL import Image
+
+import numpy as np
+import seaborn as sns
 from matplotlib import pyplot as plt
 plt.switch_backend('agg')
 
-# TODO write docstrings
+from keras import backend as K  # pylint: disable=wrong-import-position
+
 
 parent_dir, _ = os.path.split(os.getcwd())
 
@@ -26,11 +29,11 @@ def mse(target, output):
 def disc_loss(disc, real, fake, pool):
     d_real = disc([real])  # input  -> [0, 1].  Prob that real input is real.
     d_fake = disc([fake]) # generated sample -> [0, 1]. Prob that generated output is real.
-    d_fake_pool = disc([pool]) 
+    d_fake_pool = disc([pool])
     d_loss_real = mse(K.ones_like(d_real) * 0.9, d_real)
     d_loss_fake = mse(K.zeros_like(d_fake), d_fake_pool)
     d_loss = (d_loss_real + d_loss_fake)/2
-    
+
     return d_loss
 
 
@@ -45,7 +48,7 @@ def gen_loss(disc, fake):
 
 def read_image(img, imagesize=256):
     img = Image.open(img).convert('RGB')
-    img = img.resize((256, 256), Image.BICUBIC)
+    img = img.resize((imagesize, imagesize), Image.BICUBIC)
     img = np.array(img)
     img = img.astype(np.float32)
     img = (img - 127.5) / 127.5
@@ -55,9 +58,9 @@ def read_image(img, imagesize=256):
 
 def save_image(X, path, epoch, rows=1, image_size=256):
     assert X.shape[0]%rows == 0
-    int_X = ((X*127.5+127.5).clip(0,255).astype('uint8'))
-    int_X = int_X.reshape(-1,image_size,image_size, 3)
-    int_X = int_X.reshape(rows, -1, image_size, image_size,3).swapaxes(1,2).reshape(rows*image_size,-1, 3)
+    int_X = ((X*127.5+127.5).clip(0, 255).astype('uint8'))
+    int_X = int_X.reshape(-1, image_size, image_size, 3)
+    int_X = int_X.reshape(rows, -1, image_size, image_size, 3).swapaxes(1,2).reshape(rows*image_size, -1, 3)
     pil_X = Image.fromarray(int_X)
     pil_X.save('{}epoch{}.jpg'.format(path, epoch), 'JPEG')
 
@@ -73,46 +76,51 @@ def save_generator(A, B, g_a, g_b, path, epoch):
 
     arr = np.concatenate([A, B, generated_b, generated_a, rec_a, rec_b])
     save_image(arr, path, epoch, rows=3)
-    
+
 
 def minibatch(data, batchsize=1):
     length = len(data)
     shuffle(data)
     epoch = i = 0
-    tmpsize = None    
+    tmpsize = None
     while True:
         size = tmpsize if tmpsize else batchsize
         if i+size > length:
             shuffle(data)
             i = 0
-            epoch+=1        
-        rtn = [read_image(data[j]) for j in range(i,i+size)]
+            epoch+=1
+        rtn = [read_image(data[j]) for j in range(i, i+size)]
         i+=size
-        tmpsize = yield epoch, np.float32(rtn)       
+        tmpsize = yield epoch, np.float32(rtn)
 
 
 def minibatchAB(dataA, dataB, batchsize=1):
     batchA = minibatch(dataA, batchsize)
     batchB = minibatch(dataB, batchsize)
-    tmpsize = None    
-    while True:        
+    tmpsize = None
+    while True:
         ep1, A = batchA.send(tmpsize)
         ep2, B = batchB.send(tmpsize)
         tmpsize = yield max(ep1, ep2), A, B
 
 
 def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
-    # TODO add labels to the axes
+    # TODO add labels to the axes and name to plots
     sns.set()
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15,5), sharex=True)
-    
-    ax1.plot(steps, d_a, label="D_A loss")
-    ax1.plot(steps, d_b, label="D_B loss")
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15,5), sharex=True)
+    plt.xlabel("Iterations")
+
+    ax1.plot(steps, d_a, label="D_A")
+    ax1.plot(steps, d_b, label="D_B")
     ax1.legend()
-    
-    ax2.plot(steps, g_a, label="G_A loss")
-    ax2.plot(steps, g_b, label="G_B loss")
+    ax1.set_title("Discriminator loss")
+    ax1.set_ylable("MSE loss")
+
+    ax2.plot(steps, g_a, label="G_A")
+    ax2.plot(steps, g_b, label="G_B")
     ax2.legend()
+    ax2.set_title("Generator loss")
+    ax2.set_ylable("MSE loss")
 
     fig.savefig(os.path.join(parent_dir, 'logs/dataset{}-losses{}.png'.format(dataset, time.strftime('%Y%m%d-%H%M%S'))))
 
