@@ -31,6 +31,7 @@ def conv2d(*a, **k):
 
 def conv_block(x, filters, size, stride=(2, 2),
                use_leaky_relu=False, padding='same'):
+    """Convolutional block."""
     # TODO try out instance normalization
     x = conv2d(x, filters, (size, size), strides=stride, padding=padding)
     x = batchnorm()(x)
@@ -43,6 +44,7 @@ def conv_block(x, filters, size, stride=(2, 2),
 
 
 def resnet_block(x, filters=256, padding='same'):
+    """Residual block."""
     y = conv2d(x, filters, kernel_size=3, strides=1, padding=padding)
     y = LeakyReLU(alpha=0.2)(x)
     y = conv2d(x, filters, kernel_size=3, strides=1, padding=padding)
@@ -51,6 +53,7 @@ def resnet_block(x, filters=256, padding='same'):
 
 
 def up_block(x, filters, size):
+    """Deconvolution layer."""
     x = Conv2DTranspose(filters, kernel_size=size, strides=2, padding='same',
                         use_bias=False,
                         kernel_initializer=RandomNormal(0, 0.02))(x)
