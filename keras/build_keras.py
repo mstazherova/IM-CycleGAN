@@ -11,7 +11,7 @@ import tensorflow as tf
 
 from model_keras import patch_discriminator, unet_generator
 from utils_keras import disc_loss, gen_loss, cycle_loss, minibatchAB
-from utils_keras import save_generator, save_plots, save_models
+from utils_keras import save_generator, save_plots, save_models, plot_roc_curve
 # from images_keras import ImagePool
 
 from keras import backend as K
@@ -125,7 +125,7 @@ def main(arguments):
 
     while epoch < EPOCHS:
         epoch, A, B = next(train_batch)
-        _, testA, testB = next(test_batch)
+        _, test_A, test_B = next(test_batch)
 
         # Learning rate decay
         if epoch < 100:
@@ -187,7 +187,7 @@ def main(arguments):
             print('Saving generated training images...')
             save_generator(A, B, g_a, g_b, SAVE_PATH_TRAIN, epoch)
             print('Saving generated test images...')
-            save_generator(testA, testB, g_a, g_b, SAVE_PATH_TEST, epoch)
+            save_generator(test_A, test_B, g_a, g_b, SAVE_PATH_TEST, epoch)
 
         if np.mod(counter, SUMMARY_STEP) == 0:
             print('Saving data for plots...')
@@ -199,8 +199,12 @@ def main(arguments):
 
 
     print('Finished training in {:.2f} minutes'.format((time.time()-t0)/60))
-    print('Saving plots...')
+    print('Saving training losses plots...')
     save_plots(steps_array, DATASET, d_a_losses, d_b_losses, g_a_losses, g_b_losses)
+    print('Evaluating test sets...')
+    plot_roc_curve(d_a, testA, DATASET)
+    plot_roc_curve(d_b, testB, DATASET)
+
 
     if SAVE == 1:
         print('Saving models...')

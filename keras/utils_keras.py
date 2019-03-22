@@ -5,6 +5,7 @@ import time
 
 from random import shuffle
 from PIL import Image
+from sklearn.metrics import roc_curve, roc_auc_score, f1_score
 
 import numpy as np
 import seaborn as sns
@@ -27,6 +28,7 @@ def mse(target, output):
 
 
 def disc_loss(disc, real, fake, pool):
+    """Full discriminator loss."""
     d_real = disc([real])  # input  -> [0, 1].  Prob that real input is real.
     d_fake = disc([fake]) # generated sample -> [0, 1]. Prob that generated output is real.
     d_fake_pool = disc([pool])
@@ -38,15 +40,18 @@ def disc_loss(disc, real, fake, pool):
 
 
 def cycle_loss(reconstructed, real):
+    """Cyclic loss."""
     return mae(real, reconstructed)
 
 
 def gen_loss(disc, fake):
+    """Generator loss."""
     d_gen = disc([fake])
     return mse(K.ones_like(d_gen), d_gen)
 
 
 def read_image(img, imagesize=256):
+    """Reads in and normalizes an image."""
     img = Image.open(img).convert('RGB')
     img = img.resize((imagesize, imagesize), Image.BICUBIC)
     img = np.array(img)
@@ -56,29 +61,8 @@ def read_image(img, imagesize=256):
     return img
 
 
-def save_image(X, path, epoch, rows=1, image_size=256):
-    assert X.shape[0]%rows == 0
-    int_X = ((X*127.5+127.5).clip(0, 255).astype('uint8'))
-    int_X = int_X.reshape(-1, image_size, image_size, 3)
-    int_X = int_X.reshape(rows, -1, image_size, image_size, 3).swapaxes(1,2).reshape(rows*image_size, -1, 3)
-    pil_X = Image.fromarray(int_X)
-    pil_X.save('{}epoch{}.jpg'.format(path, epoch), 'JPEG')
-
-
-def save_generator(A, B, g_a, g_b, path, epoch):
-    if not os.path.isdir(path):
-        os.makedirs(path)
-
-    generated_b = g_b.predict(A)
-    rec_a = g_a.predict(generated_b)
-    generated_a = g_a.predict(B)
-    rec_b = g_b.predict(generated_a)
-
-    arr = np.concatenate([A, B, generated_b, generated_a, rec_a, rec_b])
-    save_image(arr, path, epoch, rows=3)
-
-
 def minibatch(data, batchsize=1):
+    """Creates minibatches of the dataset."""
     length = len(data)
     shuffle(data)
     epoch = i = 0
@@ -95,6 +79,7 @@ def minibatch(data, batchsize=1):
 
 
 def minibatchAB(dataA, dataB, batchsize=1):
+    """Yields epoch, batch pairs for both datasets."""
     batchA = minibatch(dataA, batchsize)
     batchB = minibatch(dataB, batchsize)
     tmpsize = None
@@ -105,6 +90,9 @@ def minibatchAB(dataA, dataB, batchsize=1):
 
 
 def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
+    """Plot losses.
+
+    Plots losses for all discriminator and generator networks."""
     sns.set()
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15,5), sharex=True)
     plt.xlabel("Iterations")
@@ -124,7 +112,67 @@ def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
     fig.savefig(os.path.join(parent_dir, 'logs/dataset{}-losses{}.png'.format(dataset, time.strftime('%Y%m%d-%H%M%S'))))
 
 
+def save_image(X, path, epoch, rows=1, image_size=256):
+    """Saves image on disk."""
+    assert X.shape[0]%rows == 0
+    int_X = ((X*127.5+127.5).clip(0, 255).astype('uint8'))
+    int_X = int_X.reshape(-1, image_size, image_size, 3)
+    int_X = int_X.reshape(rows, -1, image_size, image_size, 3).swapaxes(1,2).reshape(rows*image_size, -1, 3)
+    pil_X = Image.fromarray(int_X)
+    pil_X.save('{}epoch{}.jpg'.format(path, epoch), 'JPEG')
+
+
+def save_generator(A, B, g_a, g_b, path, epoch):
+    """Saves images produced by generator, with original and reconstructed."""
+    if not os.path.isdir(path):
+        os.makedirs(path)
+
+    generated_b = g_b.predict(A)
+    rec_a = g_a.predict(generated_b)
+    generated_a = g_a.predict(B)
+    rec_b = g_b.predict(generated_a)
+
+    arr = np.concatenate([A, B, generated_b, generated_a, rec_a, rec_b])
+    save_image(arr, path, epoch, rows=3)
+
+
+def get_metrics_disc(disc, X):
+    """Returns F1 score, false and true positive rate and area under curve."""
+    y_pred = disc.predict(X)  # softmax probabilities
+    y_prob = y_pred[:,1]       # probabilities of positive class
+
+    y = K.ones_like(X) * 0.9
+    fpr, tpr, _ = roc_curve(y, y_prob)
+    auc = roc_auc_score(y, y_prob)
+    f1 = f1_score(y, np.argmax(y_pred, axis=1), average='micro')
+
+    return f1, fpr, tpr, auc
+
+
+def plot_roc_curve(disc, X, dataset):
+    """Plot ROC curve.
+
+    Given the false and true positive rate, as well as the area under curve,
+    this function plots the ROC curve for a given dataset."""
+    f1, fpr, tpr, auc = get_metrics_disc(disc, X)
+
+    fig, ax = plt.subplots()
+    lw = 2
+    ax.plot(fpr, tpr, lw=lw, label='ROC curve (area = {:.2}, f1 = {:.3})'.format(auc, f1))
+    ax.plot([0, 1], [0, 1], lw=lw, linestyle='--')
+    ax.xlim([0.0, 1.0])
+    ax.ylim([0.0, 1.0])
+    ax.set_xlabel('False Positive Rate')
+    ax.set_ylabel('True Positive Rate')
+    ax.set_title('Receiver operating characteristic on {} set'.format(dataset))
+    ax.legend(loc="lower right")
+
+    fig.savefig(os.path.join(parent_dir, 'logs/dataset{}-ROC{}.png'.format(dataset, time.strftime('%Y%m%d-%H%M%S'))))
+
+
+
 def save_models(epoch, genA2B, genB2A, discA, discB):
+    """Saves model weights on disk."""
     genA2B.save(os.path.join(parent_dir, 'models/generatorA2B_epoch_{}.h5'.format(epoch)))
     genB2A.save(os.path.join(parent_dir, 'models/generatorB2A_epoch_{}.h5'.format(epoch)))
     discA.save(os.path.join(parent_dir, 'models/discriminatorA_epoch_{}.h5'.format(epoch)))
