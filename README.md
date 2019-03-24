@@ -2,6 +2,9 @@
 Individual Module Project, University of Potsdam
 
 Unpaired image-to-image translation using CycleGAN [1] approach. Convert faces with eyeglasses to faces with no eyeglasses and vice versa.
+
+Final version can be found in `keras` folder.
+
 ## Data
 Data folders are not being uploaded to GitHub due to privacy and size issues.
 
