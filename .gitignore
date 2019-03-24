@@ -10,8 +10,10 @@ tempCodeRunnerFile.py
 zebra_horse.ipynb
 logs/*
 samples/*
-inputs.py 
+inputs.py
 train_disc.py
-build_np.py 
+build_np.py
 report/*
 architecture.pages
+keras/training-keras.ipynb
+tensorflow/testing.ipynb
