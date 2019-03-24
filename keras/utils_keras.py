@@ -94,20 +94,21 @@ def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
 
     Plots losses for all discriminator and generator networks."""
     sns.set()
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15,5), sharex=True)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7,10))
+    fig.subplots_adjust(hspace=0.3)
     plt.xlabel("Iterations")
 
     ax1.plot(steps, d_a, label="D_A")
     ax1.plot(steps, d_b, label="D_B")
     ax1.legend()
     ax1.set_title("Discriminator loss")
-    ax1.set_ylable("MSE loss")
+    ax1.set_ylabel("Loss")
 
     ax2.plot(steps, g_a, label="G_A")
     ax2.plot(steps, g_b, label="G_B")
     ax2.legend()
     ax2.set_title("Generator loss")
-    ax2.set_ylable("MSE loss")
+    ax2.set_ylabel("Loss")
 
     fig.savefig(os.path.join(parent_dir, 'logs/dataset{}-losses{}.png'.format(dataset, time.strftime('%Y%m%d-%H%M%S'))))
 
@@ -150,10 +151,12 @@ def get_metrics_disc(disc, X):
 
 
 def plot_roc_curve(disc, X, dataset):
-    """Plot ROC curve.
+    """Plots ROC curve.
 
     Given the false and true positive rate, as well as the area under curve,
     this function plots the ROC curve for a given dataset."""
+    sns.set()
+
     f1, fpr, tpr, auc = get_metrics_disc(disc, X)
 
     fig, ax = plt.subplots()
