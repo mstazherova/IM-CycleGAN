@@ -8,8 +8,6 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.initializers import RandomNormal
 
 
-# ngf = 32  # Number of filters in first layer of generator
-# ndf = 64  # Number of filters in first layer of discriminator
 batch_size = 1
 img_width = 256
 img_height = 256
@@ -32,7 +30,6 @@ def conv2d(*a, **k):
 def conv_block(x, filters, size, stride=(2, 2),
                use_leaky_relu=False, padding='same'):
     """Convolutional block."""
-    # TODO try out instance normalization
     x = conv2d(x, filters, (size, size), strides=stride, padding=padding)
     x = batchnorm()(x)
     if not use_leaky_relu:
@@ -148,11 +145,9 @@ def generator(image_size=img_width, channels=img_depth, res_blocks=6):
     return Model(inputs=inputs, outputs=[outputs])
 
 
-def unet_generator(isize=img_width, nc_in=img_depth, nc_out=img_depth, ngf=64):
-    """Builds a generator.
-
-    Implements a U-Net."""
-    max_nf = 8*ngf
+def unet_generator(size=img_width, in_ch=img_depth, out_ch=img_depth, nf=64):
+    """Builds a pseudo unet generator."""
+    max_nf = 8 * nf
     def block(x, s, nf_in, use_batchnorm=True, nf_out=None, nf_next=None):
         assert s>=2 and s%2==0
         if nf_next is None:
@@ -160,13 +155,14 @@ def unet_generator(isize=img_width, nc_in=img_depth, nc_out=img_depth, ngf=64):
         if nf_out is None:
             nf_out = nf_in
         x = conv2d(nf_next, kernel_size=4, strides=2, use_bias=(not (use_batchnorm and s>2)),
-                   padding="same", name = 'conv_{0}'.format(s))(x)
+                   padding="same")(x)
         if s>2:
             if use_batchnorm:
                 x = batchnorm()(x, training=1)
             x2 = LeakyReLU(alpha=0.2)(x)
             x2 = block(x2, s//2, nf_next)
             x = Concatenate(axis=-1)([x, x2])
+
         x = Activation("relu")(x)
         x = Conv2DTranspose(nf_out, kernel_size=4, strides=2, use_bias=not use_batchnorm,
                             kernel_initializer = RandomNormal(0, 0.02),
@@ -178,9 +174,66 @@ def unet_generator(isize=img_width, nc_in=img_depth, nc_out=img_depth, ngf=64):
             x = Dropout(0.5)(x, training=1)  # , training=1
         return x
 
-    s = isize
+    s = size
 
-    y = inputs = Input(shape=(s, s, nc_in))
-    y = block(y, isize, nc_in, False, nf_out=nc_out, nf_next=ngf)
+    y = inputs = Input(shape=(s, s, in_ch))
+    y = block(y, size, in_ch, True, nf_out=out_ch, nf_next=nf)
     y = Activation('tanh')(y)
+
     return Model(inputs=inputs, outputs=[y])
+
+
+def unet(img_rows = img_height, img_cols=img_width, channels=img_depth):
+    """mplements a U-Net. The number of filters for the convolutional layers
+    starts from 64 and is doubled every next layer up to a maximum of 512."""
+    inputs = Input(shape=(img_rows, img_cols, channels))
+    enc1 = conv2d(64, kernel_size=4, strides=2, padding ="same")(inputs)
+    enc1 = batchnorm()(enc1)
+    enc1 = LeakyReLU(alpha=0.2)(enc1)
+
+    enc2 = conv2d(128, kernel_size=4, strides=2, padding = 'same')(enc1)
+    enc2 = batchnorm()(enc2)
+    enc2 = LeakyReLU(alpha=0.2)(enc2)
+
+    enc3 = conv2d(256, kernel_size=4, strides=2, padding = 'same')(enc2)
+    enc3 = batchnorm()(enc3)
+    enc3 = LeakyReLU(alpha=0.2)(enc3)
+
+    enc4 = conv2d(512, kernel_size=4, strides=2, padding = 'same')(enc3)
+    enc4 = batchnorm()(enc4)
+    enc4 = LeakyReLU(alpha=0.2)(enc4)
+    drop4 = Dropout(0.5)(enc4)
+
+    bottle = conv2d(1024, kernel_size=4, strides=2, padding = 'same')(drop4)
+    bottle = batchnorm()(bottle)
+    bottle = LeakyReLU(alpha=0.2)(bottle)
+    drop5 = Dropout(0.5)(bottle)
+
+    up5 = Conv2DTranspose(512, kernel_size=4, strides=2, kernel_initializer = conv_init)(drop5)
+    up5 = Activation("relu")(up5)
+    up5 = Cropping2D(1)(up5)
+    merge5 = Concatenate(axis=-1)([enc4, up5])
+
+    up6 = Conv2DTranspose(256, kernel_size=4, strides=2, kernel_initializer = conv_init)(merge5)
+    up6 = Activation("relu")(up6)
+    up6 = Cropping2D(1)(up6)
+    merge6 = Concatenate(axis=-1)([enc3, up6])
+
+    up7 = Conv2DTranspose(128, kernel_size=4, strides=2, kernel_initializer = conv_init)(merge6)
+    up7 = Activation("relu")(up7)
+    up7 = Cropping2D(1)(up7)
+    merge7 = Concatenate(axis=-1)([enc2, up7])
+
+    up8 = Conv2DTranspose(64, kernel_size=4, strides=2, kernel_initializer = conv_init)(merge7)
+    up8 = Activation("relu")(up8)
+    up8 = Cropping2D(1)(up8)
+    merge8 = Concatenate(axis=-1)([enc1, up8])
+
+    up9 = Conv2DTranspose(3, kernel_size=4, strides=2, kernel_initializer = conv_init)(merge8)
+    up9 = Cropping2D(1)(up9)
+
+    out = Activation('tanh')(up9)
+
+    model = Model(inputs=inputs, outputs=[out])
+
+    return model

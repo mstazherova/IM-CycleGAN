@@ -9,7 +9,7 @@ import numpy as np
 
 import tensorflow as tf
 
-from model_keras import patch_discriminator, unet_generator
+from model_keras import patch_discriminator, unet
 from utils_keras import disc_loss, gen_loss, cycle_loss, minibatchAB
 from utils_keras import save_generator, save_plots, save_models, plot_roc_curve
 # from images_keras import ImagePool
@@ -29,8 +29,8 @@ def build_model(w=img_width, h=img_height):
 
     d_a = patch_discriminator()
     d_b = patch_discriminator()
-    g_a = unet_generator()  # generator b2a
-    g_b = unet_generator()  # generator a2b
+    g_a = unet()  # generator b2a
+    g_b = unet()  # generator a2b
     real_a = g_b.inputs[0]
     fake_b = g_b.outputs[0]
     rec_a = g_a([fake_b])
