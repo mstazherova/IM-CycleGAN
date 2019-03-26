@@ -188,24 +188,24 @@ def unet(img_rows = img_height, img_cols=img_width, channels=img_depth):
     starts from 64 and is doubled every next layer up to a maximum of 512."""
     inputs = Input(shape=(img_rows, img_cols, channels))
     enc1 = conv2d(64, kernel_size=4, strides=2, padding ="same")(inputs)
-    enc1 = batchnorm()(enc1)
+    enc1 = batchnorm()(enc1, training=1)
     enc1 = LeakyReLU(alpha=0.2)(enc1)
 
     enc2 = conv2d(128, kernel_size=4, strides=2, padding = 'same')(enc1)
-    enc2 = batchnorm()(enc2)
+    enc2 = batchnorm()(enc2, training=1)
     enc2 = LeakyReLU(alpha=0.2)(enc2)
 
     enc3 = conv2d(256, kernel_size=4, strides=2, padding = 'same')(enc2)
-    enc3 = batchnorm()(enc3)
+    enc3 = batchnorm()(enc3, training=1)
     enc3 = LeakyReLU(alpha=0.2)(enc3)
 
     enc4 = conv2d(512, kernel_size=4, strides=2, padding = 'same')(enc3)
-    enc4 = batchnorm()(enc4)
+    enc4 = batchnorm()(enc4, training=1)
     enc4 = LeakyReLU(alpha=0.2)(enc4)
     drop4 = Dropout(0.5)(enc4)
 
     bottle = conv2d(1024, kernel_size=4, strides=2, padding = 'same')(drop4)
-    bottle = batchnorm()(bottle)
+    bottle = batchnorm()(bottle, training=1)
     bottle = LeakyReLU(alpha=0.2)(bottle)
     drop5 = Dropout(0.5)(bottle)
 
