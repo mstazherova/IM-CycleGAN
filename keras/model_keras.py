@@ -184,7 +184,7 @@ def unet_generator(size=img_width, in_ch=img_depth, out_ch=img_depth, nf=64):
 
 
 def unet(img_rows = img_height, img_cols=img_width, channels=img_depth):
-    """mplements a U-Net. The number of filters for the convolutional layers
+    """Implements a U-Net. The number of filters for the convolutional layers
     starts from 64 and is doubled every next layer up to a maximum of 512."""
     inputs = Input(shape=(img_rows, img_cols, channels))
     enc1 = conv2d(64, kernel_size=4, strides=2, padding ="same")(inputs)
