@@ -184,7 +184,7 @@ def main(arguments):
             print('D_a_loss: {:.2f}, D_b_loss: {:.2f}'.format(d_a_loss, d_b_loss))
             print('G_a_loss: {:.2f}, G_b_loss: {:.2f}'.format(g_a_loss, g_b_loss))
             print('Saving generated training images...')
-            save_generator(A, B, g_a, g_b, SAVE_PATH_TRAIN, epoch)
+            save_generator(A, B, g_a, g_b, SAVE_PATH_TRAIN, epoch, counter)
 
         if np.mod(counter, SUMMARY_STEP) == 0:
             print('Saving data for plots...')

@@ -135,7 +135,7 @@ def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
     fig.savefig(os.path.join(parent_dir, 'logs/dataset{}-losses{}.png'.format(dataset, time.strftime('%Y%m%d-%H%M%S'))))
 
 
-def save_image(X, path, epoch=None, rows=1, image_size=256):
+def save_image(X, path, epoch=None, it=None, rows=1, image_size=256):
     """Saves image on disk."""
     assert X.shape[0]%rows == 0
     int_X = ((X*127.5+127.5).clip(0, 255).astype('uint8'))
@@ -143,12 +143,12 @@ def save_image(X, path, epoch=None, rows=1, image_size=256):
     int_X = int_X.reshape(rows, -1, image_size, image_size, 3).swapaxes(1,2).reshape(rows*image_size, -1, 3)
     pil_X = Image.fromarray(int_X)
     if epoch:
-        pil_X.save('{}epoch{}.jpg'.format(path, epoch), 'JPEG')
+        pil_X.save('{}epoch{}-it{}.jpg'.format(path, epoch, it), 'JPEG')
     else:
         pil_X.save('{}{}.jpg'.format(path, time.strftime('%Y%m%d-%H%M%S')), 'JPEG')
 
 
-def save_generator(A, B, g_a, g_b, path, epoch):
+def save_generator(A, B, g_a, g_b, path, epoch, it):
     """Saves images produced by generator, with original and reconstructed."""
     if not os.path.isdir(path):
         os.makedirs(path)
@@ -158,7 +158,7 @@ def save_generator(A, B, g_a, g_b, path, epoch):
     rec_b = g_b.predict(generated_a)
 
     arr = np.concatenate([A, B, generated_b, generated_a, rec_a, rec_b])
-    save_image(arr, path, epoch=epoch, rows=3)
+    save_image(arr, path, epoch=epoch, it=it, rows=3)
 
 
 def save_test(A, B, g_a, g_b, path):
