@@ -10,8 +10,8 @@ import numpy as np
 import tensorflow as tf
 
 from model_keras import patch_discriminator, unet
-from utils_keras import disc_loss, gen_loss, cycle_loss, minibatchAB
-from utils_keras import save_generator, save_plots, save_models, plot_roc_curve
+from utils_keras import disc_loss, gen_loss, cycle_loss, save_models, save_test
+from utils_keras import save_generator, save_plots, minibatchAB, test_batchAB
 # from images_keras import ImagePool
 
 from keras import backend as K
@@ -117,7 +117,7 @@ def main(arguments):
     d_trainer, g_trainer, g_a, g_b, d_a, d_b, adam_disc, adam_gen = build_model()
 
     train_batch = minibatchAB(trainA, trainB)
-    test_batch = minibatchAB(testA, testB)
+    test_batch = test_batchAB(testA, testB)
 
     # Initialize fake images pools
     pool_a2b = []
@@ -125,7 +125,6 @@ def main(arguments):
 
     while epoch < EPOCHS:
         epoch, A, B = next(train_batch)
-        _, test_A, test_B = next(test_batch)
 
         # Learning rate decay
         if epoch < 100:
@@ -186,8 +185,6 @@ def main(arguments):
             print('G_a_loss: {:.2f}, G_b_loss: {:.2f}'.format(g_a_loss, g_b_loss))
             print('Saving generated training images...')
             save_generator(A, B, g_a, g_b, SAVE_PATH_TRAIN, epoch)
-            print('Saving generated test images...')
-            save_generator(test_A, test_B, g_a, g_b, SAVE_PATH_TEST, epoch)
 
         if np.mod(counter, SUMMARY_STEP) == 0:
             print('Saving data for plots...')
@@ -201,9 +198,15 @@ def main(arguments):
     print('Finished training in {:.2f} minutes'.format((time.time()-t0)/60))
     print('Saving training losses plots...')
     save_plots(steps_array, DATASET, d_a_losses, d_b_losses, g_a_losses, g_b_losses)
-    print('Evaluating test sets...')
-    plot_roc_curve(d_a, testA, DATASET)
-    plot_roc_curve(d_b, testB, DATASET)
+    print('Saving generated test images...')
+    for _ in range(len(testA)):
+        test_A, test_B = next(test_batch)
+        save_test(test_A, test_B, g_a, g_b, SAVE_PATH_TEST)
+
+
+    # print('Evaluating test sets...')
+    # plot_roc_curve(d_a, testA, DATASET)
+    # plot_roc_curve(d_b, testB, DATASET)
 
 
     if SAVE == 1:

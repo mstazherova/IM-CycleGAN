@@ -89,6 +89,28 @@ def minibatchAB(dataA, dataB, batchsize=1):
         tmpsize = yield max(ep1, ep2), A, B
 
 
+def test_batch(data, batchsize=1):
+    """Creates test batches."""
+    i = 0
+    tmpsize = None
+    while True:
+        size = tmpsize if tmpsize else batchsize
+        rtn = [read_image(data[j]) for j in range(i,i+size)]
+        i+=size
+        tmpsize = yield np.float32(rtn)
+
+
+def test_batchAB(dataA, dataB, batchsize=1):
+    """Yields test pairs for both datasets."""
+    batchA = test_batch(dataA, batchsize)
+    batchB = test_batch(dataB, batchsize)
+    tmpsize = None
+    while True:
+        A = batchA.send(tmpsize)
+        B = batchB.send(tmpsize)
+        tmpsize = yield A, B
+
+
 def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
     """Plot losses.
 
@@ -113,28 +135,41 @@ def save_plots(steps, dataset, d_a, d_b, g_a, g_b):
     fig.savefig(os.path.join(parent_dir, 'logs/dataset{}-losses{}.png'.format(dataset, time.strftime('%Y%m%d-%H%M%S'))))
 
 
-def save_image(X, path, epoch, rows=1, image_size=256):
+def save_image(X, path, epoch=None, rows=1, image_size=256):
     """Saves image on disk."""
     assert X.shape[0]%rows == 0
     int_X = ((X*127.5+127.5).clip(0, 255).astype('uint8'))
     int_X = int_X.reshape(-1, image_size, image_size, 3)
     int_X = int_X.reshape(rows, -1, image_size, image_size, 3).swapaxes(1,2).reshape(rows*image_size, -1, 3)
     pil_X = Image.fromarray(int_X)
-    pil_X.save('{}epoch{}.jpg'.format(path, epoch), 'JPEG')
+    if epoch:
+        pil_X.save('{}epoch{}.jpg'.format(path, epoch), 'JPEG')
+    else:
+        pil_X.save('{}{}.jpg'.format(path, time.strftime('%Y%m%d-%H%M%S')), 'JPEG')
 
 
 def save_generator(A, B, g_a, g_b, path, epoch):
     """Saves images produced by generator, with original and reconstructed."""
     if not os.path.isdir(path):
         os.makedirs(path)
-
     generated_b = g_b.predict(A)
     rec_a = g_a.predict(generated_b)
     generated_a = g_a.predict(B)
     rec_b = g_b.predict(generated_a)
 
     arr = np.concatenate([A, B, generated_b, generated_a, rec_a, rec_b])
-    save_image(arr, path, epoch, rows=3)
+    save_image(arr, path, epoch=epoch, rows=3)
+
+
+def save_test(A, B, g_a, g_b, path):
+    """Saves images produced by generator, with original input"""
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    generated_b = g_b.predict(A)
+    generated_a = g_a.predict(B)
+
+    arr = np.concatenate([A, B, generated_b, generated_a])
+    save_image(arr, path, rows=2)
 
 
 def get_metrics_disc(disc, X):
