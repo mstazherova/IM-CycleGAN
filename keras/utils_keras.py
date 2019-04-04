@@ -5,7 +5,6 @@ import time
 
 from random import shuffle
 from PIL import Image
-from sklearn.metrics import roc_curve, roc_auc_score, f1_score
 
 import numpy as np
 import seaborn as sns
@@ -78,17 +77,6 @@ def minibatch(data, batchsize=1):
         tmpsize = yield epoch, np.float32(rtn)
 
 
-def minibatchAB(dataA, dataB, batchsize=1):
-    """Yields epoch, batch pairs for both datasets."""
-    batchA = minibatch(dataA, batchsize)
-    batchB = minibatch(dataB, batchsize)
-    tmpsize = None
-    while True:
-        ep1, A = batchA.send(tmpsize)
-        ep2, B = batchB.send(tmpsize)
-        tmpsize = yield max(ep1, ep2), A, B
-
-
 def test_batch(data, batchsize=1):
     """Creates test batches."""
     i = 0
@@ -98,6 +86,17 @@ def test_batch(data, batchsize=1):
         rtn = [read_image(data[j]) for j in range(i,i+size)]
         i+=size
         tmpsize = yield np.float32(rtn)
+
+
+def minibatchAB(dataA, dataB, batchsize=1):
+    """Yields epoch, batch pairs for both datasets."""
+    batchA = minibatch(dataA, batchsize)
+    batchB = minibatch(dataB, batchsize)
+    tmpsize = None
+    while True:
+        ep1, A = batchA.send(tmpsize)
+        ep2, B = batchB.send(tmpsize)
+        tmpsize = yield max(ep1, ep2), A, B
 
 
 def test_batchAB(dataA, dataB, batchsize=1):
@@ -161,6 +160,16 @@ def save_generator(A, B, g_a, g_b, path, epoch, it):
     save_image(arr, path, epoch=epoch, it=it, rows=3)
 
 
+def save_onedir(A, g_b, path, epoch, it):
+    """Saves images produced by generator, with original."""
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    generated_b = g_b.predict(A)
+
+    arr = np.concatenate([A, generated_b])
+    save_image(arr, path, epoch=epoch, it=it, rows=2)
+
+
 def save_test(A, B, g_a, g_b, path):
     """Saves images produced by generator, with original input"""
     if not os.path.isdir(path):
@@ -172,41 +181,26 @@ def save_test(A, B, g_a, g_b, path):
     save_image(arr, path, rows=2)
 
 
-def get_metrics_disc(disc, X):
-    """Returns F1 score, false and true positive rate and area under curve."""
-    y_pred = disc.predict(X)  # softmax probabilities
-    y_prob = y_pred[:,1]       # probabilities of positive class
+def save_plots_onedir(steps, dataset, d, g):
+    """Plot losses.
 
-    y = K.ones_like(X) * 0.9
-    fpr, tpr, _ = roc_curve(y, y_prob)
-    auc = roc_auc_score(y, y_prob)
-    f1 = f1_score(y, np.argmax(y_pred, axis=1), average='micro')
-
-    return f1, fpr, tpr, auc
-
-
-def plot_roc_curve(disc, X, dataset):
-    """Plots ROC curve.
-
-    Given the false and true positive rate, as well as the area under curve,
-    this function plots the ROC curve for a given dataset."""
+    Plots losses for all discriminator and generator networks."""
     sns.set()
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7,10))
+    fig.subplots_adjust(hspace=0.3)
+    plt.xlabel("Iterations")
 
-    f1, fpr, tpr, auc = get_metrics_disc(disc, X)
+    ax1.plot(steps, d)
+    ax1.legend()
+    ax1.set_title("Discriminator loss")
+    ax1.set_ylabel("Loss")
 
-    fig, ax = plt.subplots()
-    lw = 2
-    ax.plot(fpr, tpr, lw=lw, label='ROC curve (area = {:.2}, f1 = {:.3})'.format(auc, f1))
-    ax.plot([0, 1], [0, 1], lw=lw, linestyle='--')
-    ax.xlim([0.0, 1.0])
-    ax.ylim([0.0, 1.0])
-    ax.set_xlabel('False Positive Rate')
-    ax.set_ylabel('True Positive Rate')
-    ax.set_title('Receiver operating characteristic on {} set'.format(dataset))
-    ax.legend(loc="lower right")
+    ax2.plot(steps, g)
+    ax2.legend()
+    ax2.set_title("Generator loss")
+    ax2.set_ylabel("Loss")
 
-    fig.savefig(os.path.join(parent_dir, 'logs/dataset{}-ROC{}.png'.format(dataset, time.strftime('%Y%m%d-%H%M%S'))))
-
+    fig.savefig(os.path.join(parent_dir, 'logs/ds{}-loss-onedir{}.png'.format(dataset, time.strftime('%Y%m%d-%H%M%S'))))
 
 
 def save_models(epoch, genA2B, genB2A, discA, discB):
