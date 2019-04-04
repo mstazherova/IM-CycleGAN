@@ -41,9 +41,9 @@ def build_model(w=img_width, h=img_height):
     adam_gen = optimizers.Adam(lr=2e-4, beta_1=0.5, beta_2=0.999)
 
     training_updates_disc = adam_disc.get_updates(weights_d, [], d_b_loss)  #pylint: disable=too-many-function-args
-    d_train_function = K.function([real_a, real_b, fake_pool_b], [d_b_loss], training_updates_disc)
+    d_train_function = K.function([real_a, real_b, fake_pool_b], d_b_loss, training_updates_disc)
     training_updates_gen = adam_gen.get_updates(weights_g, [], g_b_loss)  #pylint: disable=too-many-function-args
-    g_train_function = K.function([real_a, real_b], [g_b_loss], training_updates_gen)
+    g_train_function = K.function([real_a, real_b], g_b_loss, training_updates_gen)
 
     return  d_train_function, g_train_function, g_b, d_b, adam_disc, adam_gen
 
@@ -71,8 +71,6 @@ def main(arguments):
     if DATASET == 0:
         trainA = glob.glob(os.path.join(parent_dir, 'data/trainA/*'))
         trainB = glob.glob(os.path.join(parent_dir, 'data/trainB/*'))
-        testA = glob.glob(os.path.join(parent_dir, 'data/testA/*'))
-        testB = glob.glob(os.path.join(parent_dir, 'data/testB/*'))
     elif DATASET == 1:
         trainA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses/*'))
         trainB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses/*'))
@@ -80,7 +78,7 @@ def main(arguments):
         testB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses_test/*'))
 
     SAVE_PATH_TRAIN = os.path.join(parent_dir, 'results/ds{}-gen-train-onedir{}/'.format(DATASET, time.strftime('%Y%m%d-%H%M%S')))
-    SAVE_PATH_TEST = os.path.join(parent_dir, 'results/dataset{}-generated-test{}/'.format(DATASET, time.strftime('%Y%m%d-%H%M%S')))
+    # SAVE_PATH_TEST = os.path.join(parent_dir, 'results/dataset{}-generated-test{}/'.format(DATASET, time.strftime('%Y%m%d-%H%M%S')))
     DISPLAY_STEP = 500
 
     SUMMARY_STEP = min(len(trainA), len(trainB))
@@ -159,10 +157,6 @@ def main(arguments):
     # for _ in range(len(testA)):
     #     test_A, test_B = next(test_batch)
     #     save_test(test_A, test_B, g_a, g_b, SAVE_PATH_TEST)
-
-    if SAVE == 1:
-        print('Saving models...')
-        save_models(epoch, g_b, g_a, d_a, d_b)
 
     print('Done!')
 
