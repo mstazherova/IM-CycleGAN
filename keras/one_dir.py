@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 
 from model_keras import patch_discriminator, unet
-from utils_keras import disc_loss, gen_loss, cycle_loss, save_models, save_test
+from utils_keras import disc_loss, gen_loss, save_models, save_test
 from utils_keras import save_onedir, save_plots_onedir, minibatchAB, test_batchAB
 
 from keras import backend as K
@@ -41,9 +41,9 @@ def build_model(w=img_width, h=img_height):
     adam_gen = optimizers.Adam(lr=2e-4, beta_1=0.5, beta_2=0.999)
 
     training_updates_disc = adam_disc.get_updates(weights_d, [], d_b_loss)  #pylint: disable=too-many-function-args
-    d_train_function = K.function([real_a, real_b, fake_pool_b], d_b_loss, training_updates_disc)
+    d_train_function = K.function([real_a, real_b, fake_pool_b], [d_b_loss], training_updates_disc)
     training_updates_gen = adam_gen.get_updates(weights_g, [], g_b_loss)  #pylint: disable=too-many-function-args
-    g_train_function = K.function([real_a, real_b], g_b_loss, training_updates_gen)
+    g_train_function = K.function([real_a, real_b], [g_b_loss], training_updates_gen)
 
     return  d_train_function, g_train_function, g_b, d_b, adam_disc, adam_gen
 
@@ -137,8 +137,8 @@ def main(arguments):
 
         if np.mod(counter, DISPLAY_STEP) == 0:
             print('[Epoch {}/{}][Iteration {}]...'.format(epoch, EPOCHS, counter))
-            print('D_b_loss: {:.2f}'.format(d_b_loss))
-            print('G_b_loss: {:.2f}'.format(g_b_loss))
+            print('D_b_loss: {:.2f}'.format(d_b_loss[0]))
+            print('G_b_loss: {:.2f}'.format(g_b_loss[0]))
             print('Saving generated training images...')
             save_onedir(A, g_b, SAVE_PATH_TRAIN, epoch, counter)
 
