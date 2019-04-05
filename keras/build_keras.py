@@ -10,8 +10,9 @@ import numpy as np
 import tensorflow as tf
 
 from model_keras import patch_discriminator, unet
-from utils_keras import disc_loss, gen_loss, cycle_loss, save_models, save_test
+from utils_keras import disc_loss, gen_loss, cycle_loss, save_test
 from utils_keras import save_generator, save_plots, minibatchAB, test_batchAB
+from utils_keras import save_disc, save_gen
 # from images_keras import ImagePool
 
 from keras import backend as K
@@ -75,7 +76,9 @@ def main(arguments):
     GPU = arguments.gpu
     GPU_NUMBER = arguments.gpu_number
     DATASET = arguments.dataset
-    SAVE = arguments.save_weights
+    SAVE_DISC = arguments.save_weights_disc
+    SAVE_GEN = arguments.save_weights_gen
+
 
     if GPU == 1:
         os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(GPU_NUMBER)
@@ -203,9 +206,13 @@ def main(arguments):
         test_A, test_B = next(test_batch)
         save_test(test_A, test_B, g_a, g_b, SAVE_PATH_TEST)
 
-    if SAVE == 1:
-        print('Saving models...')
-        save_models(epoch, g_b, g_a, d_a, d_b)
+    if SAVE_DISC == 1:
+        print('Saving discriminator models...')
+        save_disc(epoch, d_a, d_b)
+
+    if SAVE_GEN == 1:
+        print('Saving generator models...')
+        save_gen(epoch, g_a, g_b)
 
     print('Done!')
 
@@ -220,8 +227,10 @@ if __name__ == "__main__":
                         help='Which GPU to use. Default:0')
     parser.add_argument('-d', '--dataset', type=int, default=0,
                         help='Which dataset to use. Z/H: 0, MM:1. Default:0')
-    parser.add_argument('-sw', '--save_weights', type=int, default=0,
-                        help='If to save models. Default:0')
+    parser.add_argument('-swd', '--save_weights_disc', type=int, default=0,
+                        help='If to save discriminators. Default:1')
+    parser.add_argument('-swg', '--save_weights_gen', type=int, default=0,
+                        help='If to save generators. Default:0')
     args = parser.parse_args()
 
     main(args)

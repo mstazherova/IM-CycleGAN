@@ -203,9 +203,13 @@ def save_plots_onedir(steps, dataset, d, g):
     fig.savefig(os.path.join(parent_dir, 'logs/ds{}-loss-onedir{}.png'.format(dataset, time.strftime('%Y%m%d-%H%M%S'))))
 
 
-def save_models(epoch, genA2B, genB2A, discA, discB):
-    """Saves model weights on disk."""
-    genA2B.save(os.path.join(parent_dir, 'models/generatorA2B_epoch_{}.h5'.format(epoch)))
-    genB2A.save(os.path.join(parent_dir, 'models/generatorB2A_epoch_{}.h5'.format(epoch)))
+def save_disc(epoch, discA, discB):
+    """Saves discriminator models' weights on disk."""
     discA.save(os.path.join(parent_dir, 'models/discriminatorA_epoch_{}.h5'.format(epoch)))
     discB.save(os.path.join(parent_dir, 'models/discriminatorB_epoch_{}.h5'.format(epoch)))
+
+
+def save_gen(epoch, genA2B, genB2A):
+    """Saves discriminator models' weights on disk."""
+    genA2B.save(os.path.join(parent_dir, 'models/generatorA2B_epoch_{}.h5'.format(epoch)))
+    genB2A.save(os.path.join(parent_dir, 'models/generatorB2A_epoch_{}.h5'.format(epoch)))
