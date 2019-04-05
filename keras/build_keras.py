@@ -9,7 +9,7 @@ import numpy as np
 
 import tensorflow as tf
 
-from model_keras import patch_discriminator, unet
+from model_keras import patch_discriminator, unet_generator
 from utils_keras import disc_loss, gen_loss, cycle_loss, save_test
 from utils_keras import save_generator, save_plots, minibatchAB, test_batchAB
 from utils_keras import save_disc, save_gen
@@ -30,8 +30,8 @@ def build_model(w=img_width, h=img_height):
 
     d_a = patch_discriminator()
     d_b = patch_discriminator()
-    g_a = unet()  # generator b2a
-    g_b = unet()  # generator a2b
+    g_a = unet_generator()  # generator b2a
+    g_b = unet_generator()  # generator a2b
     real_a = g_b.inputs[0]
     fake_b = g_b.outputs[0]
     rec_a = g_a([fake_b])
@@ -58,8 +58,8 @@ def build_model(w=img_width, h=img_height):
     weights_g = g_a.trainable_weights + g_b.trainable_weights
 
     # Define optimizers
-    adam_disc = optimizers.Adam(lr=2e-4, beta_1=0.5)
-    adam_gen = optimizers.Adam(lr=2e-4, beta_1=0.5)
+    adam_disc = optimizers.Adam(lr=2e-4, beta_1=0.5, beta_2=0.999)
+    adam_gen = optimizers.Adam(lr=2e-4, beta_1=0.5, beta_2=0.999)
 
     training_updates_disc = adam_disc.get_updates(weights_d, [], d_total)  #pylint: disable=too-many-function-args
     d_train_function = K.function([real_a, real_b, fake_pool_a, fake_pool_b], [d_a_loss, d_b_loss], training_updates_disc)
