@@ -9,8 +9,8 @@ import numpy as np
 import tensorflow as tf
 
 from model_keras import patch_discriminator, unet
-from utils_keras import disc_loss, gen_loss, save_models, save_test
-from utils_keras import save_onedir, save_plots_onedir, minibatchAB, test_batchAB
+from utils_keras import disc_loss, gen_loss
+from utils_keras import save_onedir, save_plots_onedir, minibatchAB
 
 from keras import backend as K
 from keras import optimizers
@@ -55,7 +55,6 @@ def main(arguments):
     GPU = arguments.gpu
     GPU_NUMBER = arguments.gpu_number
     DATASET = arguments.dataset
-    SAVE = arguments.save_weights
 
     if GPU == 1:
         os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(GPU_NUMBER)
@@ -72,10 +71,8 @@ def main(arguments):
         trainA = glob.glob(os.path.join(parent_dir, 'data/trainA/*'))
         trainB = glob.glob(os.path.join(parent_dir, 'data/trainB/*'))
     elif DATASET == 1:
-        trainA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses/*'))
-        trainB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses/*'))
-        testA = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses_test/*'))
-        testB = glob.glob(os.path.join(parent_dir, 'data/mm/glasses_test/*'))
+        trainB = glob.glob(os.path.join(parent_dir, 'data/mm/no_glasses/*'))
+        trainA = glob.glob(os.path.join(parent_dir, 'data/mm/glasses/*'))
 
     SAVE_PATH_TRAIN = os.path.join(parent_dir, 'results/ds{}-gen-train-onedir{}/'.format(DATASET, time.strftime('%Y%m%d-%H%M%S')))
     # SAVE_PATH_TEST = os.path.join(parent_dir, 'results/dataset{}-generated-test{}/'.format(DATASET, time.strftime('%Y%m%d-%H%M%S')))
