@@ -228,7 +228,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--dataset', type=int, default=0,
                         help='Which dataset to use. Z/H: 0, MM:1. Default:0')
     parser.add_argument('-swd', '--save_weights_disc', type=int, default=0,
-                        help='If to save discriminators. Default:1')
+                        help='If to save discriminators. Default:0')
     parser.add_argument('-swg', '--save_weights_gen', type=int, default=0,
                         help='If to save generators. Default:0')
     args = parser.parse_args()
