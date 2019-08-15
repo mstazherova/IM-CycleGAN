@@ -1,19 +1,32 @@
+# auxiliary files
+.DS_Store
 .vscode
 .ipynb_checkpoints
 __pycache__
-data/*
-results/*
-playground.ipynb
-gan_example.py
-.DS_Store
 tempCodeRunnerFile.py
-zebra_horse.ipynb
+
+# data files
 logs/*
 samples/*
+data/*
+results/*
+
+# playground scripts
+keras/training-keras.ipynb
+tensorflow/testing.ipynb
 inputs.py
 train_disc.py
 build_np.py
+playground.ipynb
+gan_example.py
+zebra_horse.ipynb
+
+# latex paper
 report/*
+
+# latex presentation slides
+presentation/*
+
+# other
 architecture.pages
-keras/training-keras.ipynb
-tensorflow/testing.ipynb
+
