@@ -1,12 +1,14 @@
 # IM-CycleGAN
 Individual Module Project, University of Potsdam
 
-Unpaired image-to-image translation using CycleGAN [1] approach. Convert faces with eyeglasses to faces with no eyeglasses and vice versa.
+The purpose of this project was to apply cycle-consistent adversatial networks proposed by Zhu et al. to the face attribute manipulation problem.
 
-Final version can be found in `keras` folder.
+We investigate the use of unpaired image-to-image translation using [CycleGAN](https://junyanz.github.io/CycleGAN/) [1] to the task of eyeglasses removal from faces along with the reverse task of adding eyeglasses to facial images.
+
+Final version can be found in `keras` folder. All implementation details and model architecture can also be found in the project paper (report_cycleGAN.pdf).
 
 ## Data
-Data folders are not being uploaded to GitHub due to privacy and size issues.
+Data folders are not being uploaded to GitHub due to size issues and a little bit of privacy.
 
 Sets:
 * Eyeglasses: 1777 training images
