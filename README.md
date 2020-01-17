@@ -1,9 +1,9 @@
 # IM-CycleGAN
 Individual Module Project, University of Potsdam
 
-The purpose of this project was to apply cycle-consistent adversatial networks proposed by Zhu et al. to the face attribute manipulation problem.
+The purpose of this project was to apply cycle-consistent adversatial networks proposed by Zhu et al. [1] to the face attribute manipulation problem.
 
-We investigate the use of unpaired image-to-image translation using [CycleGAN](https://junyanz.github.io/CycleGAN/) [1] to the task of eyeglasses removal from faces along with the reverse task of adding eyeglasses to facial images.
+We investigate the use of unpaired image-to-image translation using [CycleGAN](https://junyanz.github.io/CycleGAN/) to the task of eyeglasses removal from faces along with the reverse task of adding eyeglasses to facial images.
 
 Final version can be found in `keras` folder. All implementation details and model architecture can also be found in the project paper (report_cycleGAN.pdf).
 
